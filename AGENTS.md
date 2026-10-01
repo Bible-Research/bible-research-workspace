@@ -51,7 +51,10 @@ fileset model, auth quirks, caching, error contracts).
 - `.devin/rules/` — no-migrations, line-length,
   commit-only-edited-files (auto-loaded).
 - `.devin/workflows/create-pr.md` — PR body via `--body-file`.
-- `.devin/skills/fix-good-first-issue/` — issue-fixing workflow.
+- `.devin/skills/fix-good-first-issue-frontend/` and
+  `.devin/skills/fix-good-first-issue-backend/` — issue-fixing
+  workflows for `reactive-bible` and `bible_research`; both include a
+  step to check whether the fix belongs in the other repo.
 - `reactive-bible/.devin/skills/vercel-react-best-practices/` —
   React perf rules (full doc at
   `reactive-bible/.agents/skills/vercel-react-best-practices/AGENTS.md`).

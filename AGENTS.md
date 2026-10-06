@@ -58,6 +58,8 @@ fileset model, auth quirks, caching, error contracts).
    production Aiven Postgres via the read-only `ai_agent` user —
    use it for read-only investigation; pytest stays on in-memory
    SQLite. Details in `bible_research/AGENTS.md` ("Databases").
+9. **Test login**: when the user asks you to log in and run tests
+   (UI or API), use the account `Tester5` / `password123`.
 
 ## Existing agent config (don't duplicate it)
 

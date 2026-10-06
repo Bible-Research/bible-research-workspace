@@ -54,6 +54,10 @@ fileset model, auth quirks, caching, error contracts).
    changes — it's the project's contract doc for future sessions.
 7. No secrets in code: backend uses `config.yaml` (gitignored) /
    GCP Secret Manager; frontend uses `VITE_*` env vars.
+8. `bible_research`'s local `config.yaml` points `default` at the
+   production Aiven Postgres via the read-only `ai_agent` user —
+   use it for read-only investigation; pytest stays on in-memory
+   SQLite. Details in `bible_research/AGENTS.md` ("Databases").
 
 ## Existing agent config (don't duplicate it)
 

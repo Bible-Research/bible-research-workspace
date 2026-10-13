@@ -25,17 +25,19 @@ fileset model, auth quirks, caching, error contracts).
   DBT ids otherwise. Changes to provider routing, the
   `error`/`error_code` failure contract, or note/tag/comment
   payloads usually touch BOTH repos.
-- `/bible/translations/` responses carry normalized
-  `text_options`/`audio_options` (snake_case fields:
-  `by_testament`, `coverage_label`, `partial`) alongside raw
-  `filesets`; grouping logic lives in
-  `bible/services/fileset_groups.py` (backend) and
-  `src/utils/filesetGroups.ts` (frontend). Books missing from a
-  fileset return 404 `{"error_code": "book_not_in_fileset"}`;
-  the frontend walks an `alternates` chain (codec →
-  other-testament → same-kind → any option).
-- Backend features the frontend does not consume yet: image
-  uploads, `reading-positions`.
+- `/bible/translations/` normalization lives in
+  `src/utils/filesetGroups.ts` (frontend, merged). The backend
+  half — `bible/services/fileset_groups.py`, `text_options`/
+  `audio_options` fields, 404
+  `{"error_code": "book_not_in_fileset"}` — is implemented but
+  still on the unmerged `feat/fileset-groups` branch; the
+  frontend falls back to client-side grouping and walks an
+  `alternates` chain (codec → other-testament → same-kind →
+  any option).
+- Backend features the frontend does not consume yet: note
+  image uploads (comment images ARE consumed),
+  `reading-positions` ARE consumed too — see
+  `reactive-bible/AGENTS.md` "Known gaps".
 
 ## Workspace-wide rules (apply everywhere)
 
@@ -90,14 +92,11 @@ fileset model, auth quirks, caching, error contracts).
   auth, comments, mentions, Android.
 - `reactive-bible/CLAUDE.md` — quick reference; component list is
   stale.
-- `reactive-bible/docs/*.md` — feature plans (Android APK, audio,
-  USFM URLs).
-- Root `*-plan.md` files — historical implementation plans,
-  reference only.
+- `reactive-bible/docs/` — test documentation
+  (`TAG_REFRESH_TESTS.md`).
+- `docs/plans/` — all implementation plans/investigations,
+  incl. `docs/plans/rust-rewrite/` (multi-file). Each doc
+  carries a status header: implemented / partial / in
+  progress / not implemented / reverted.
 - `bible_research/docs/` — GCP / Artifact Registry cleanup
   runbooks.
-
-Root-level plan files (`image-attachments-plan.md`,
-`inline-comment-images-plan.md`,
-`note-translation-reference-plan.md`) describe features that have
-since landed (comments, images) or are in progress.

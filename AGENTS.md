@@ -43,13 +43,22 @@ fileset model, auth quirks, caching, error contracts).
 
 1. **79-char max line length in every file type** (py, ts, md).
    Verify: `awk 'length > 79 {print FILENAME":"NR}' <file>`.
+   Match the file's style when wrapping (split imports, break
+   args/props onto their own lines). Fix violations you
+   introduce, plus pre-existing long lines in files you are
+   already modifying.
 2. **Never run DB migrations** (`makemigrations`, `migrate`,
-   `sqlmigrate`). Tell the user the needed command instead.
+   `sqlmigrate`), even if a task seems to need them (e.g. tests
+   failing on missing tables). Tell the user the needed command
+   and let them run it.
 3. **Commit format**: `Type: Capitalized message` —
    `Feat:`/`Fix:`/`Docs:`/`Refactor:`/`Test:`/`Chore:`.
 4. **Commits/PRs happen inside each subrepo**, on feature
-   branches (never `main`). Stage only files you edited; never
-   `git add -A`; never commit plan/scratch markdown
+   branches (never `main`). Stage only files you created or
+   modified this session — never `git add -A`, `git add .`, or
+   `git commit -a`; stage each file by path and confirm the
+   staged set with `git status` first. Leave the user's own
+   dirty files alone; never commit plan/scratch markdown
    (`*-plan.md`, `PR_DESCRIPTION.md`…).
 5. **PR creation**: write the body to a temp file and use
    `gh pr create --body-file` — see `.devin/workflows/create-pr.md`.
@@ -63,35 +72,43 @@ fileset model, auth quirks, caching, error contracts).
    SQLite. Details in `bible_research/AGENTS.md` ("Databases").
 9. **Test login**: when the user asks you to log in and run tests
    (UI or API), use the account `Tester5` / `password123`.
+10. **Write all plans in `docs/plans/`** — implementation plans,
+    investigations, and design docs belong in the workspace-level
+    `docs/plans/` directory as `<feature>-plan.md` (multi-file
+    plans get a subdirectory, e.g. `rust-rewrite/`), each with a
+    status header (implemented / partial / in progress / not
+    implemented / reverted). Never put plan files inside the app
+    subrepos.
 
-## Existing agent config (don't duplicate it)
+## Agent config layout
 
-- `.devin/rules/` — no-migrations, line-length,
-  commit-only-edited-files (auto-loaded).
+Instructions live in `AGENTS.md` files only (this file plus the
+per-repo `AGENTS.md`) — the cross-tool standard every agent
+reads. Skills live in `.agents/skills/` (`SKILL.md` format).
+Only Devin-specific extras that `AGENTS.md` can't express stay
+under `.devin/`:
+
 - `.devin/workflows/create-pr.md` — PR body via `--body-file`.
-- `.devin/skills/fix-good-first-issue-frontend/` and
-  `.devin/skills/fix-good-first-issue-backend/` — issue-fixing
-  workflows for `reactive-bible` and `bible_research`; both include a
-  step to check whether the fix belongs in the other repo.
-- `reactive-bible/.devin/skills/vercel-react-best-practices/` —
-  React perf rules (full doc at
-  `reactive-bible/.agents/skills/vercel-react-best-practices/AGENTS.md`).
-- `.windsurfrules` — workspace overview (Windsurf format).
-- `bible_research/WINDSURF_AI_GUIDELINES.md` — backend style rules.
-- `reactive-bible/CLAUDE.md` + `reactive-bible/.devin/rules.md` —
-  older frontend guides.
+- `.devin/config.local.json` — permission allowlist (untracked).
+
+Skills:
+
+- `.agents/skills/fix-good-first-issue-{frontend,backend}/` —
+  issue-fixing workflows for `reactive-bible` and
+  `bible_research`; both include a step to check whether the fix
+  belongs in the other repo.
+- `.agents/skills/implement-plan/` — execute a `docs/plans/*`
+  file with subagents.
+- `reactive-bible/.agents/skills/vercel-react-best-practices/` —
+  React perf rules.
 
 ## Documentation map (and staleness)
 
 - `bible_research/DEVELOPER_GUIDE.md` — API reference; predates
   comments/images/reading-positions, SWORD+ESV providers, and the
   Django 5.2 upgrade.
-- `bible_research/WINDSURF_AI_GUIDELINES.md` — style/architecture
-  patterns, mostly accurate.
 - `reactive-bible/DEVELOPER_GUIDE.md` — architecture; predates
   auth, comments, mentions, Android.
-- `reactive-bible/CLAUDE.md` — quick reference; component list is
-  stale.
 - `reactive-bible/docs/` — test documentation
   (`TAG_REFRESH_TESTS.md`).
 - `docs/plans/` — all implementation plans/investigations,

@@ -21,6 +21,7 @@ fileset model, auth quirks, caching, error contracts).
   (`bible_research`); auth via `Authorization: Token …`.
 - `fileset_id` is the shared routing key: `ENGKJV` (local bundle),
   `ENGESV_API` (api.esv.org), `LVSGLU8` (SWORD + GCS TTS audio),
+  `ENGNIV_API`/`ENGNIVC1DA` (API.Bible NIV text/audio),
   DBT ids otherwise. Changes to provider routing, the
   `error`/`error_code` failure contract, or note/tag/comment
   payloads usually touch BOTH repos.

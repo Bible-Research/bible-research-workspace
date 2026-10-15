@@ -78,6 +78,18 @@ fileset model, auth quirks, caching, error contracts).
     status header (implemented / partial / in progress / not
     implemented / reverted). Never put plan files inside the app
     subrepos.
+11. **Record environment/setup learnings in `AGENTS.md`.** When
+    you hit local-setup, infrastructure, or missing-tooling
+    friction — a CLI that isn't installed on this machine, a
+    non-obvious way to spin the project up locally, a required
+    tool version or local-only path — don't burn time trying
+    many failing alternatives. If a needed tool is missing,
+    tell the user what to install rather than working around it
+    repeatedly. And whenever you do figure out the working flow
+    or a local quirk, write it into the relevant `AGENTS.md`
+    (this file for workspace-level, the subrepo's for
+    repo-specific) so the next agent uses it directly — commit
+    that doc update alongside the work that discovered it.
 
 ## Agent config layout
 

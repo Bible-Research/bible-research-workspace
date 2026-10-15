@@ -5,8 +5,6 @@ description: Pick an open GitHub issue labeled "good first issue" in
   main, open a draft PR, wait for checks, fix any failures,
   and mark the PR ready for review. Invoke when the user asks to fix a
   good-first-issue / pick up an issue from the reactive-bible repo.
-triggers:
-  - user
 ---
 
 # Fix a "Good First Issue" in reactive-bible
@@ -90,14 +88,17 @@ stop and ask the user before proceeding.
 
 ## 4. Fix the issue
 
-- Read `reactive-bible/CLAUDE.md` for frontend conventions.
+- Read `reactive-bible/AGENTS.md` for frontend conventions.
 - Implement the fix; add or update tests where appropriate.
 - Keep every line <= 79 characters, in every file type.
 - Verify before committing (from `reactive-bible/`):
 
       npm run lint
       npm run build
-      npm test
+      npm test -- --run
+
+- If the change alters app behavior, update
+  `reactive-bible/DEVELOPER_GUIDE.md` (workspace rule 6).
 
 ## 5. Commit, push, and open a draft PR
 
@@ -130,7 +131,8 @@ stop and ask the user before proceeding.
   (`gh pr checks <PR-number>` for links, `gh run view --log-failed`
   for logs), fix the code, commit, push, and watch again.
 - Repeat until every check passes. Do not mark ready while checks
-  are pending or failing.
+  are pending or failing. (If the repo reports no checks at all,
+  note that and continue.)
 
 ## 7. Mark ready for review and report
 

@@ -34,10 +34,9 @@ fileset model, auth quirks, caching, error contracts).
   frontend falls back to client-side grouping and walks an
   `alternates` chain (codec → other-testament → same-kind →
   any option).
-- Backend features the frontend does not consume yet: note
-  image uploads (comment images ARE consumed),
-  `reading-positions` ARE consumed too — see
-  `reactive-bible/AGENTS.md` "Known gaps".
+- Note image uploads are the one backend feature the frontend
+  does not consume yet (comment images and reading positions
+  ARE consumed — see `reactive-bible/AGENTS.md` "Known gaps").
 
 ## Workspace-wide rules (apply everywhere)
 
@@ -84,23 +83,25 @@ fileset model, auth quirks, caching, error contracts).
 
 Instructions live in `AGENTS.md` files only (this file plus the
 per-repo `AGENTS.md`) — the cross-tool standard every agent
-reads. Skills live in `.agents/skills/` (`SKILL.md` format).
-Only Devin-specific extras that `AGENTS.md` can't express stay
-under `.devin/`:
+reads. Workspace-level skills live in `.devin/skills/` (the
+location discovered at this root); repo-scoped skills live in
+`<repo>/.agents/skills/` (`SKILL.md` format). Skill frontmatter
+must be plain `name`/`description` — extra fields like
+`triggers` or `argument-hint` silently break discovery.
 
-- `.devin/workflows/create-pr.md` — PR body via `--body-file`.
-- `.devin/config.local.json` — permission allowlist (untracked).
-
-Skills:
-
-- `.agents/skills/fix-good-first-issue-{frontend,backend}/` —
+- `.devin/skills/fix-good-first-issue-{frontend,backend}/` —
   issue-fixing workflows for `reactive-bible` and
   `bible_research`; both include a step to check whether the fix
   belongs in the other repo.
-- `.agents/skills/implement-plan/` — execute a `docs/plans/*`
+- `.devin/skills/implement-plan/` — execute a `docs/plans/*`
   file with subagents.
 - `reactive-bible/.agents/skills/vercel-react-best-practices/` —
   React perf rules.
+
+Other `.devin/` entries:
+
+- `.devin/workflows/create-pr.md` — PR body via `--body-file`.
+- `.devin/config.local.json` — permission allowlist (untracked).
 
 ## Documentation map (and staleness)
 

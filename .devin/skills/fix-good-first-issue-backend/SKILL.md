@@ -6,8 +6,6 @@ description: Pick an open GitHub issue labeled "good first issue" in
   failures, and mark the PR ready for review. Invoke when the user
   asks to fix a good-first-issue / pick up an issue from the
   bible_research backend repo.
-triggers:
-  - user
 ---
 
 # Fix a "Good First Issue" in bible_research
@@ -68,7 +66,7 @@ Outcomes:
 
 - Fix only here (most common) — continue to step 3.
 - Fix only in `reactive-bible` — work there instead, following
-  `reactive-bible/CLAUDE.md` conventions and branching from ITS
+  `reactive-bible/AGENTS.md` conventions and branching from ITS
   `main` branch; this skill's branch/PR steps still apply, just in
   the other repo (push to `Bible-Research/reactive-bible`).
 - Fix in both — do each repo's part on its own branch and open two

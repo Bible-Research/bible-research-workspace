@@ -6,9 +6,6 @@ description: Implement a plan markdown file end-to-end with
   agents and iterate fix rounds until reviewers report no issues.
   Invoke when the user asks to implement/execute a plan file
   (e.g. *-plan.md) using agents.
-argument-hint: "<plan-file.md>"
-triggers:
-  - user
 ---
 
 # Implement a Plan File with Subagents
@@ -43,34 +40,29 @@ background so they run in parallel. Each prompt must include:
 
     1. cd <repo-dir>; git switch main && git pull --ff-only;
        git switch -c feat/<slug>
-    2. Copy <plan-file> to <repo-dir>/<basename> and commit it
-       on the branch (`Docs: Add <basename>`) — the plan file
-       must be part of the branch.
-    3. Read <conventions-file> first
-       (bible_research/AGENTS.md or reactive-bible/CLAUDE.md).
+    2. Read <conventions-file> first
+       (bible_research/AGENTS.md or reactive-bible/AGENTS.md).
        Every line <= 79 chars in every file type.
        Backend: NEVER run makemigrations/migrate — if a
        migration is needed, write the model change and report
        the command instead.
-    4. Implement ONLY this repo's part of the plan. The other
+    3. Implement ONLY this repo's part of the plan. The other
        repo is being changed in parallel — implement against
        the contract the plan specifies, do not wait for it.
-    5. Add/update tests per the plan. Verify:
+    4. Add/update tests per the plan. Verify:
        backend:  source venv/bin/activate &&
                  python -m pytest <changed-app tests> -q
        frontend: npm run lint && npm run build && npm test
-    6. Commit only files you edited (never git add -A, never
-       commit other plan/scratch md). Once implementation is
-       done, delete the committed <basename> copy and commit
-       the deletion (`Chore: Remove implemented plan file`)
-       before pushing. Format: `Type: Capitalized msg`.
+    5. Commit only files you edited (never git add -A, never
+       commit plan/scratch md). Format:
+       `Type: Capitalized msg`.
        Push: git push -u origin feat/<slug>
-    7. Open a DRAFT PR with --base main following
+    6. Open a DRAFT PR with --base main following
        .devin/workflows/create-pr.md at the workspace root —
        write the body to pr-body.md, use --body-file, rm it
        after. Body must include a UI-verification section and
        reference the other repo's PR if the plan has both.
-    8. gh pr checks <N> --watch; fix failures until green, then
+    7. gh pr checks <N> --watch; fix failures until green, then
        gh pr ready <N>.
     Return: PR URL, files changed, test results, anything you
     could not do.
@@ -89,8 +81,7 @@ never reuse the implementers. Prompt:
        error/error_code contract, cross-repo contract match
        (field names, endpoints — diff the sibling PR <url>
        too if it exists), tests actually cover the change,
-       79-char limit, no plan/scratch files left in the diff
-       (the plan file's add+delete commits are expected), no
+       79-char limit, no plan/scratch files in the diff, no
        migrations added.
     3. Optionally run the repo's scoped tests.
     Return: numbered findings, each with severity

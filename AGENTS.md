@@ -26,12 +26,14 @@ fileset model, auth quirks, caching, error contracts).
   `error`/`error_code` failure contract, or note/tag/comment
   payloads usually touch BOTH repos.
 - `/bible/translations/` normalization lives in
-  `src/utils/filesetGroups.ts` (frontend, merged). The backend
-  half — `bible/services/fileset_groups.py`, `text_options`/
+  `src/utils/filesetGroups.ts` (frontend) with the backend
+  half in `bible/services/fileset_groups.py` (`text_options`/
   `audio_options` fields, 404
-  `{"error_code": "book_not_in_fileset"}` — is implemented but
-  still on the unmerged `feat/fileset-groups` branch; the
-  frontend falls back to client-side grouping and walks an
+  `{"error_code": "book_not_in_fileset"}`) — merged on `main`
+  via Bible-Research/bible_research#29. The leftover
+  `feat/fileset-groups` branch is an older revision lacking
+  API.Bible entries — do not work from it. The frontend still
+  falls back to client-side grouping and walks an
   `alternates` chain (codec → other-testament → same-kind →
   any option).
 - Note image uploads are the one backend feature the frontend
@@ -90,6 +92,16 @@ fileset model, auth quirks, caching, error contracts).
     (this file for workspace-level, the subrepo's for
     repo-specific) so the next agent uses it directly — commit
     that doc update alongside the work that discovered it.
+12. **`gcloud`, `gh`, `node`/`npm` are installed but not on
+    agent PATH.** They live under `/opt/homebrew/bin` (Homebrew);
+    agent shells only get
+    `/usr/bin:/bin:/usr/sbin:/sbin`, so prefix commands with
+    `export PATH="/opt/homebrew/bin:$PATH"` on every exec call —
+    env does not persist between calls. Authenticated account:
+    `tedis.rozenfelds@gmail.com`; open billing account
+    `016064-8B1D40-715CAA`. Projects incl.
+    `bible-research-489314`, `django-apps-7345`,
+    `gen-lang-client-0833674612` (Industry Analyser).
 
 ## Agent config layout
 

@@ -162,3 +162,5 @@ Without a device farm, a `workflow_dispatch` + `android`-branch
 push that builds a **debug APK artifact** (30-day retention) is
 the fastest iteration loop — install by hand, check the fix,
 then let the signed release path ship it.
+
+See also: [android-lockscreen-audio.md](android-lockscreen-audio.md).

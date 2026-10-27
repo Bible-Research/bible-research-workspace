@@ -49,18 +49,16 @@ fileset model, auth quirks, caching, error contracts).
   feature-branch checkout (a WIP branch was briefly deployed
   this way on 2026-10-26).
 - **Frontend: Vercel only.** Prod domain:
-  `reactive-bible.vercel.app`. The GitHub-connected Vercel
-  project is `bible-research` (team `industr-analysers-projects`)
-  — it builds PR previews and main-merge deploys, but
-  `bible-research.vercel.app` 307-redirects to
-  `bibleresearchapi.vercel.app` (a stale API deployment that
-  itself 302s to `/api/v1/docs/` — do not confuse it with the
-  real App Engine backend). As of 2026-10-27,
-  `reactive-bible.vercel.app` did NOT auto-update on merges;
-  if prod is served by a second `reactive-bible` Vercel
-  project, its deploys are manual — verify in the dashboard
-  which project claims the domain before debugging a stale
-  deployment.
+  **`bibleresearch.vercel.app`**, served by the Vercel project
+  `bible-research` (team `industr-analysers-projects`), which
+  builds PR previews + main-merge production deploys from the
+  fork. Do NOT confuse it with `reactive-bible.vercel.app` —
+  that serves the *upstream* `reactive-bible` project the repo
+  was forked from; it rebuilds `main` independently, is NOT
+  this project's prod, and env vars set in `bible-research`
+  don't apply to it. `bible-research.vercel.app` and
+  `bibleresearchapi.vercel.app` are likewise stale redirects
+  (the latter 302s to `/api/v1/docs/`).
 - **Vercel env vars bake in at build time.** `VITE_*` vars are
   compiled into the bundle; changing or adding them requires a
   redeploy to take effect, and they must be scoped to

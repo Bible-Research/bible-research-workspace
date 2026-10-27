@@ -134,6 +134,14 @@ fileset model, auth quirks, caching, error contracts).
     `016064-8B1D40-715CAA`. Projects incl.
     `bible-research-489314`, `django-apps-7345`,
     `gen-lang-client-0833674612` (Industry Analyser).
+13. **Merging PRs on user request**: when the user asks you to
+    merge a pull request, do it — `gh pr merge <N> --squash
+    --admin` is allowed even when a required review is unmet;
+    don't block on branch-protection review requirements. The
+    only reason to hold back is if the merge could introduce
+    significant ongoing costs (e.g. Terraform changes that
+    scale up infra, code that keeps services running
+    constantly) — flag those to the user instead of merging.
 
 ## Agent config layout
 

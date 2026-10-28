@@ -145,14 +145,19 @@ GET  $BASE/projects/<org>/<proj>/keys/        # → DSN
 agent-fixable bug queue** — every stream is designed to be
 either in it or deliberately out:
 
-| Stream | Emission | Level | Tag | In queue |
-|---|---|---|---|---|
-| Unhandled exceptions/500s | auto / reportError | error | — | yes |
-| Internal bugs (caught 500s) | captureException | error | `error_code:internal_error` | yes |
-| Resource-load failures | captureMessage | warning | `reportType:resource-load` | low-pri |
-| Provider outages | captureException | warning | `error_code:*` | trend-only |
-| User bug reports | captureMessage('user report') + captureFeedback(associatedEventId) | info | `reportType:user-report` | task stream |
-| Debug snapshots | captureMessage + attachment | info | `reportType:*` (e.g. `media-debug`) | excluded |
+- Unhandled exceptions/500s — auto or `reportError`,
+  exception, level **error** → in queue.
+- Internal bugs (caught 500s) — `captureException`, level
+  **error**, tag `error_code:internal_error` → in queue.
+- Resource-load failures — `captureMessage`, **warning**,
+  `reportType:resource-load` → low-priority view.
+- Provider outages — `captureException`, **warning**,
+  `error_code:{rate_limited,provider_error}` → trend-only.
+- User bug reports — `captureMessage('user report')` +
+  `captureFeedback` linked by `associatedEventId`, **info**,
+  `reportType:user-report` → agent task stream (see §7).
+- Debug snapshots — `captureMessage` + attachment, **info**,
+  `reportType:*` (e.g. `media-debug`) → excluded entirely.
 
 Rules: actionable = level error exceptions; non-bug streams =
 `captureMessage` at info/warning with a `reportType` tag;

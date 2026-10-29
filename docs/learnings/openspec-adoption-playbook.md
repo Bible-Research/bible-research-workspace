@@ -1,9 +1,11 @@
 # OpenSpec Adoption Playbook — reusable across projects
 
 Distilled from adopting OpenSpec in the bible-research-workspace
-(2026-10-29, PR #2). Written to be handed to an AI agent in ANY
-repo as its implementation spec. Repo-specific callouts at the
-end cover Next.js and Django+React targets.
+(2026-10-29, PR #2); gotchas updated after nibrastube (PR #59)
+and django-apps (PR #51) adoptions the same day. Written to be
+handed to an AI agent in ANY repo as its implementation spec.
+Repo-specific callouts at the end cover Next.js and Django+React
+targets.
 
 ## What OpenSpec is
 
@@ -101,6 +103,33 @@ update / sync-specs / archive / explore).
 - **CLI PATH**: a global npm install lands wherever npm's bin
   dir is (`/opt/homebrew/bin` on this machine) which may not be
   on agent shells' PATH — document it in the instructions file.
+- **`.gitignore` shadowing**: a bare `config.yaml` ignore rule
+  (common where `config.yaml` holds secrets) also matches
+  `openspec/config.yaml`. After init run
+  `git check-ignore -v openspec/config.yaml` and add
+  `!openspec/config.yaml` to `.gitignore` if it's caught.
+  (Hit in django-apps.)
+- **Vendored skills vs line-length limits**: openspec 1.14.x
+  generates >79-char prose in SKILL.md bodies. In repos with a
+  line-length rule, don't rewrap upstream files — add an
+  explicit exemption for `.agents/skills/` AND the `.devin/`
+  copies to the instructions file, or a later agent will "fix"
+  them and break `openspec update` refreshes. (Hit in both
+  nibrastube and django-apps; both exempted it in AGENTS.md.)
+- **`gh pr checks --watch` right after push** can report "no
+  checks reported" — GitHub hasn't registered the run yet.
+  Retry after ~15s instead of assuming checks are absent.
+  (Hit on both repos.)
+- **Strict mode's 500-char cap** counts requirement bodies
+  including newlines — split detail into scenarios early; both
+  repos needed a trim pass after review found borderline
+  bodies.
+- **Expect 2–3 review rounds on spec wording.** Reviewers
+  consistently found real spec-vs-code divergences the
+  implementer missed (e.g. which auth branch carries `next`
+  vs `session['oauth_redirect_url']`; a JS-predicate clone of
+  an SQL fragment). Fresh-eyes re-review after fixes catches
+  follow-ons; budget the loop, don't one-shot it.
 - **`openspec/specs/.gitkeep`** from init is safe to delete
   once real specs exist.
 - **Generated skill files are upstream artifacts** — don't

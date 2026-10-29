@@ -43,7 +43,7 @@ a repo starts being cloned/edited standalone.
 
 ## Prerequisites
 
-- `npm i -g @fission-ai/openspec` (v1.15.x; node/npm live in
+- `npm i -g @fission-ai/openspec` (v1.14.x; node/npm live in
   `/opt/homebrew/bin` — prefix `export PATH=...` per rule 12).
 - No DB, no secrets, no deploy impact — planning docs only.
 

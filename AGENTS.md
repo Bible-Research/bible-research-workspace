@@ -110,8 +110,9 @@ fileset model, auth quirks, caching, error contracts).
     `docs/plans/` directory as `<feature>-plan.md` (multi-file
     plans get a subdirectory, e.g. `rust-rewrite/`), each with a
     status header (implemented / partial / in progress / not
-    implemented / reverted). Never put plan files inside the app
-    subrepos.
+    implemented / reverted). New feature plans go through
+    `openspec changes` instead — see the OpenSpec section.
+    Never put plan files inside the app subrepos.
 11. **Record environment/setup learnings in `AGENTS.md`.** When
     you hit local-setup, infrastructure, or missing-tooling
     friction — a CLI that isn't installed on this machine, a
@@ -124,9 +125,9 @@ fileset model, auth quirks, caching, error contracts).
     (this file for workspace-level, the subrepo's for
     repo-specific) so the next agent uses it directly — commit
     that doc update alongside the work that discovered it.
-12. **`gcloud`, `gh`, `node`/`npm` are installed but not on
-    agent PATH.** They live under `/opt/homebrew/bin` (Homebrew);
-    agent shells only get
+12. **`gcloud`, `gh`, `node`/`npm`, `openspec` are installed
+    but not on agent PATH.** They live under
+    `/opt/homebrew/bin` (Homebrew); agent shells only get
     `/usr/bin:/bin:/usr/sbin:/sbin`, so prefix commands with
     `export PATH="/opt/homebrew/bin:$PATH"` on every exec call —
     env does not persist between calls. Authenticated account:
@@ -183,6 +184,8 @@ live at the system level — never run `openspec init` inside
 
 - **Run `openspec` commands only from the workspace root** —
   a fixed convention, not upward root-resolution.
+- The CLI is a global npm install — it lives in
+  `/opt/homebrew/bin` next to `node`/`npm` (rule 12).
 - `openspec/specs/` holds capability specs (current behavior as
   source of truth): `provider-routing`, `error-contract`,
   `auth` — grow as real changes touch new areas.

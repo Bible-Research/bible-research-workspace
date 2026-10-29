@@ -31,7 +31,9 @@ The backend SHALL map codes to statuses as follows:
 404, `PassageNotFoundError`) → 404; `book_not_in_fileset`
 (every provider's fileset-lacks-book coverage miss) → 404;
 `provider_error` → 502 for all other provider failures;
-`missing_parameter`/`invalid_parameter` (`bad_request`) → 400.
+`internal_error` → 500 as the catch-all for unexpected server
+exceptions; `missing_parameter`/`invalid_parameter`
+(`bad_request`) → 400.
 Routing ids SHALL be charset-validated at the view boundary.
 
 #### Scenario: Rate-limited upstream yields 429

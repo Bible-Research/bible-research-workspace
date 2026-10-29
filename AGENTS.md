@@ -5,7 +5,7 @@ repos** (not a monorepo — each subdir has its own `.git`, remotes,
 and deploy pipeline). The root-level `.git` only tracks workspace
 config/docs; it does NOT track the app repos.
 
-- `bible_research/` — Django 5.2 + DRF REST API → Google App
+- `bible_research/` — Django 6.1 + DRF REST API → Google App
   Engine (`bible-research-489314.ey.r.appspot.com`); infra in
   `terraform/`.
 - `reactive-bible/` — React 18 + TS + Vite SPA → Vercel; also a
@@ -171,7 +171,7 @@ Other `.devin/` entries:
 
 - `bible_research/DEVELOPER_GUIDE.md` — API reference; predates
   comments/images/reading-positions, SWORD+ESV providers, and the
-  Django 5.2 upgrade.
+  Django 6.1 upgrade.
 - `reactive-bible/DEVELOPER_GUIDE.md` — architecture; predates
   auth, comments, mentions, Android.
 - `reactive-bible/docs/` — test documentation

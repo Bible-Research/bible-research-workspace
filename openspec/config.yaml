@@ -1,0 +1,39 @@
+schema: spec-driven
+
+# Project context (optional)
+# Add only constraints that should guide OpenSpec artifacts and workflows.
+# Include constraints an agent cannot infer by reading the code.
+# Keep general project documentation and discoverable codebase facts out.
+context: |
+  This workspace holds two independent git repos (not a monorepo):
+    - bible_research/  — Django + DRF REST API (the BACKEND)
+    - reactive-bible/  — React 18 + TS + Vite SPA (the FRONTEND)
+  The root .git versions only workspace docs/config (AGENTS.md,
+  docs/plans/, .devin/, openspec/); code lives in the subrepos.
+  Specs under openspec/specs/ describe system-level contracts that
+  span BOTH repos (provider routing, the error contract, auth) —
+  neither repo owns them alone.
+  Constraints that apply to every change:
+    - Max line length is 79 chars in every file type.
+    - Commit messages use "Type: Capitalized message"
+      (Feat:/Fix:/Docs:/Refactor:/Test:/Chore:); never commit to
+      main; stage only files you changed.
+    - NEVER run DB migrations (makemigrations, migrate,
+      sqlmigrate). Tell the user the needed command instead.
+
+# Per-artifact rules (optional)
+rules:
+  tasks:
+    - Prefix every task item with its target repo — "backend:" for
+      bible_research/, "frontend:" for reactive-bible/, or "both:"
+      when the task touches both repos.
+  proposal:
+    - State which repo(s) the change impacts in the Impact section.
+
+# Per-operation guidance (optional)
+operations:
+  apply:
+    guidance:
+      - Implement backend-prefixed tasks inside bible_research/ and
+        frontend-prefixed tasks inside reactive-bible/; commits
+        happen inside each subrepo on feature branches.

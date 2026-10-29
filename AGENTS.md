@@ -69,8 +69,8 @@ fileset model, auth quirks, caching, error contracts).
 - **Sentry** (org `bible-research` at de.sentry.io): projects
   `bible-research-api` (Django) + `reactive-bible-web` (React);
   DSNs live in GCP Secret Manager (`SENTRY_DSN`) and Vercel env
-  (`VITE_SENTRY_DSN`) respectively. Details:
-  `docs/plans/sentry-monitoring-plan.md`.
+  (`VITE_SENTRY_DSN`) respectively; per-repo event-stream
+  contracts are documented in each repo's `AGENTS.md`.
 
 ## Workspace-wide rules (apply everywhere)
 
@@ -110,8 +110,9 @@ fileset model, auth quirks, caching, error contracts).
     `docs/plans/` directory as `<feature>-plan.md` (multi-file
     plans get a subdirectory, e.g. `rust-rewrite/`), each with a
     status header (implemented / partial / in progress / not
-    implemented / reverted). Never put plan files inside the app
-    subrepos.
+    implemented / reverted). New feature plans go through
+    `openspec changes` instead — see the OpenSpec section.
+    Never put plan files inside the app subrepos.
 11. **Record environment/setup learnings in `AGENTS.md`.** When
     you hit local-setup, infrastructure, or missing-tooling
     friction — a CLI that isn't installed on this machine, a
@@ -124,9 +125,9 @@ fileset model, auth quirks, caching, error contracts).
     (this file for workspace-level, the subrepo's for
     repo-specific) so the next agent uses it directly — commit
     that doc update alongside the work that discovered it.
-12. **`gcloud`, `gh`, `node`/`npm` are installed but not on
-    agent PATH.** They live under `/opt/homebrew/bin` (Homebrew);
-    agent shells only get
+12. **`gcloud`, `gh`, `node`/`npm`, `openspec` are installed
+    but not on agent PATH.** They live under
+    `/opt/homebrew/bin` (Homebrew); agent shells only get
     `/usr/bin:/bin:/usr/sbin:/sbin`, so prefix commands with
     `export PATH="/opt/homebrew/bin:$PATH"` on every exec call —
     env does not persist between calls. Authenticated account:
@@ -159,6 +160,11 @@ must be plain `name`/`description` — extra fields like
   belongs in the other repo.
 - `.devin/skills/implement-plan/` — execute a `docs/plans/*`
   file with subagents.
+- `.devin/skills/openspec-*/` — OpenSpec workflow skills
+  (propose, apply, update, sync, archive, explore); copies of
+  the CLI-installed `.agents/skills/openspec-*/` with
+  frontmatter stripped to `name`/`description` (see OpenSpec
+  section below).
 - `reactive-bible/.agents/skills/vercel-react-best-practices/` —
   React perf rules.
 
@@ -166,6 +172,39 @@ Other `.devin/` entries:
 
 - `.devin/workflows/create-pr.md` — PR body via `--body-file`.
 - `.devin/config.local.json` — permission allowlist (untracked).
+
+## OpenSpec
+
+`openspec/` at the workspace root is the spec-driven planning
+layer (npm `@fission-ai/openspec`, v1.14.x). It is an umbrella
+over BOTH repos by design: the contracts that matter (provider
+routing, `error`/`error_code`, auth) are cross-repo, so specs
+live at the system level — never run `openspec init` inside
+`bible_research/` or `reactive-bible/`.
+
+- **Run `openspec` commands only from the workspace root** —
+  a fixed convention, not upward root-resolution.
+- The CLI is a global npm install — it lives in
+  `/opt/homebrew/bin` next to `node`/`npm` (rule 12).
+- `openspec/specs/` holds capability specs (current behavior as
+  source of truth): `provider-routing`, `error-contract`,
+  `auth` — grow as real changes touch new areas.
+- `openspec/config.yaml` carries project context; change
+  `tasks.md` items MUST be prefixed `backend:` /
+  `frontend:` / `both:` to name the target repo.
+- Workflow: `openspec-propose` → implement via
+  `openspec-apply-change` → `openspec-archive-change`. The
+  skills live in `.devin/skills/openspec-*` (copies — the
+  upstream frontmatter in `.agents/skills/openspec-*/` has
+  extra fields that break Devin discovery, so keep the
+  `.devin` copies stripped if `openspec update` refreshes the
+  originals).
+- `openspec/changes/archive/` is committed to root `.git`
+  like all other planning history.
+- **`docs/plans/` is frozen for new feature plans** — new
+  feature work goes through `openspec changes`. Existing
+  `docs/plans/*` stay as history, and investigation/report
+  docs (non-feature) still belong there per rule 10.
 
 ## Documentation map (and staleness)
 
@@ -176,9 +215,13 @@ Other `.devin/` entries:
   auth, comments, mentions, Android.
 - `reactive-bible/docs/` — test documentation
   (`TAG_REFRESH_TESTS.md`).
-- `docs/plans/` — all implementation plans/investigations,
-  incl. `docs/plans/rust-rewrite/` (multi-file). Each doc
-  carries a status header: implemented / partial / in
-  progress / not implemented / reverted.
+- `docs/plans/` — historical implementation
+  plans/investigations, incl. `docs/plans/rust-rewrite/`
+  (multi-file). Each doc carries a status header: implemented /
+  partial / in progress / not implemented / reverted. Frozen
+  for new feature plans — see the OpenSpec section.
+- `openspec/` — spec-driven planning layer: `specs/`
+  (capability contracts), `changes/` + `changes/archive/`
+  (change lifecycle), `config.yaml` (project context).
 - `bible_research/docs/` — GCP / Artifact Registry cleanup
   runbooks.

@@ -1,6 +1,7 @@
 # Plan: Optional email at registration + forgot-password reset
 
-Status: plan (issue: Bible-Research/bible-research-workspace)
+Status: plan — not implemented (issue
+Bible-Research/bible-research-workspace#1 still open)
 Scope: `bible_research` (backend) + `reactive-bible` (frontend)
 
 ## User request

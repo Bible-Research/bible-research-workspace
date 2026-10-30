@@ -1,5 +1,11 @@
 # Bug Report Feature — Implementation Plan
 
+**Status:** partial — shipped differently: the menu flow went
+out as the Sentry-based "Report a problem" (`fdb9a41`,
+`userReport.ts` → `reportType: user-report`). The
+`bug_reports` DB table, GCS screenshot storage, and
+GitHub-issue public path designed below were not built.
+
 ## Goal
 
 Add an in-app "Report a bug" flow:

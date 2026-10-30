@@ -1,5 +1,8 @@
 # Note Translations + Note TTS — Investigation & Plan
 
+**Status:** not implemented (investigation + plan only; no
+`NoteTranslation` model exists in `bible_research`).
+
 Date: 2026-10-09. Investigates how to auto-translate notes into
 multiple languages and generate per-language audio via Cloud TTS.
 

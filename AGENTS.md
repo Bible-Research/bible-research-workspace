@@ -201,6 +201,22 @@ live at the system level — never run `openspec init` inside
   originals).
 - `openspec/changes/archive/` is committed to root `.git`
   like all other planning history.
+- **When to use it**: features, breaking changes, contract
+  changes, anything a reviewer would ask "why?" about.
+  **Skip the ceremony** for bug fixes restoring spec'd
+  behavior, typos, config/dep bumps, and tests — fix those
+  directly. Pure refactors may propose with
+  `skip_specs: true` in the change's `.openspec.yaml`.
+- **Specs describe observable behavior only** — error codes,
+  HTTP statuses, payload shapes, routing outcomes. Never
+  class/function names, library choices, or implementation
+  steps (those belong in `design.md`/`tasks.md`).
+- **Don't backfill specs** — write a spec only when a change
+  touches that capability; `specs/` grows via archived
+  deltas, not upfront documentation.
+- **Archive after the PR merges**, on `main` as a small
+  follow-up commit — `specs/` should only advance with work
+  that actually shipped.
 - **`docs/plans/` is frozen for new feature plans** — new
   feature work goes through `openspec changes`. Existing
   `docs/plans/*` stay as history, and investigation/report

@@ -1,3 +1,10 @@
-# bible_research/
-# reactive-bible/
+# App repos and worktree checkouts — each has its own .git
+bible_research/
+reactive-bible/
+reactive-bible-tag-ux/
+worktrees/
+
+# Scratch assets
+tts-samples/
+
 .DS_Store

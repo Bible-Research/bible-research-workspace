@@ -184,6 +184,10 @@ live at the system level — never run `openspec init` inside
 
 - **Run `openspec` commands only from the workspace root** —
   a fixed convention, not upward root-resolution.
+- **Always run `openspec validate --all --strict` after
+  touching `openspec/`** — proposing, editing specs, syncing
+  or archiving. It must pass before committing; strict mode
+  catches >500-char requirement bodies and spec/delta drift.
 - The CLI is a global npm install — it lives in
   `/opt/homebrew/bin` next to `node`/`npm` (rule 12).
 - `openspec/specs/` holds capability specs (current behavior as

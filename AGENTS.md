@@ -143,6 +143,15 @@ fileset model, auth quirks, caching, error contracts).
     significant ongoing costs (e.g. Terraform changes that
     scale up infra, code that keeps services running
     constantly) — flag those to the user instead of merging.
+14. **Parallel-agent worktrees**: `git -C <repo> worktree add
+    <path>` resolves `<path>` relative to the REPO root, not the
+    caller's cwd — `worktrees/x` lands in `<repo>/worktrees/x`.
+    Nested worktrees work fine: `.eslintrc.cjs` has `root: true`
+    on main (merged via #215) so `npm run lint` no longer
+    cascades into the parent checkout's config. Backend agents:
+    each worktree needs its own venv (`python3 -m venv .venv`)
+    and a `config.yaml` symlink to the main checkout's (it's
+    gitignored, so worktrees don't get one).
 
 ## Agent config layout
 

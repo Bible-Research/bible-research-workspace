@@ -48,6 +48,17 @@ fileset model, auth quirks, caching, error contracts).
   clean worktree on `origin/main`, never from the user's
   feature-branch checkout (a WIP branch was briefly deployed
   this way on 2026-10-26).
+- **Never deploy preview/staging/ephemeral resources** — no
+  PR-preview or staging Cloud Run services, no extra GAE
+  versions left serving, no second deployments of anything.
+  Idle resources are what blew the Oct 2026 bill: every serving
+  GAE version runs its own `min_instances` instance 24/7, and
+  `-staging`/`-pr-*` Cloud Run leftovers add up. Manual
+  `gcloud app deploy` MUST pass `--stop-previous-version` and
+  be followed by
+  `bible_research/scripts/cleanup_app_engine_versions.sh`
+  (CI already does both). Anything that must exist long-term
+  has to scale to zero.
 - **Frontend: Vercel only.** Prod domain:
   **`bibleresearch.vercel.app`**, served by the Vercel project
   `bible-research` (team `industr-analysers-projects`), which

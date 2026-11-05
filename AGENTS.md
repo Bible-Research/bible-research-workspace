@@ -242,6 +242,13 @@ live at the system level — never run `openspec init` inside
   merge in a small follow-up commit on `main`. Never leave
   a merged change unarchived: unsynced deltas leave
   `specs/` stale.
+- **Update specs in the same PR as the code.** Any change
+  that alters behavior covered by `openspec/specs/` MUST
+  update the affected spec in the same PR — whether it came
+  through `openspec changes` (that update is the archive) or
+  not (edit the spec directly). A spec that no longer
+  matches shipped behavior is a bug, not documentation
+  drift.
 - **`docs/plans/` is frozen for new feature plans** — new
   feature work goes through `openspec changes`. Existing
   `docs/plans/*` stay as history, and investigation/report

@@ -1,5 +1,10 @@
 # Self-generated verse timestamps for Latvian DBT audio —
-Status: implemented (Bible-Research/bible_research#116)
+Status: partial — shipped (#116, scheduler #118, hotfix #119)
+but LOW quality (~0.09-0.28 alignment scores, all artifacts
+`low_confidence`): GLU8 is only a proxy text — DBT has no
+LVR/NLI text. Blocked until a matching Latvian text is
+licensable (e.g. api.bible). See DEVELOPER_GUIDE "Current
+state" note in the Generated Timestamps section.
 
 Goal: for Latvian DBT audio filesets that have no DBT verse
 timestamps, generate our own `*_timestamps.json` artifacts with

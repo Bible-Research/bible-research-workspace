@@ -214,22 +214,32 @@ live at the system level — never run `openspec init` inside
   originals).
 - `openspec/changes/archive/` is committed to root `.git`
   like all other planning history.
+- `openspec/changes/` has never held a proposal — two
+  post-adoption features were planned via `docs/plans/`
+  before the convention landed. No retroactive migration;
+  `changes/archive/` only gains entries for work proposed
+  through `openspec changes`.
 - **When to use it**: features, breaking changes, contract
   changes, anything a reviewer would ask "why?" about.
   **Skip the ceremony** for bug fixes restoring spec'd
   behavior, typos, config/dep bumps, and tests — fix those
   directly. Pure refactors may propose with
   `skip_specs: true` in the change's `.openspec.yaml`.
-- **Specs describe observable behavior only** — error codes,
-  HTTP statuses, payload shapes, routing outcomes. Never
-  class/function names, library choices, or implementation
-  steps (those belong in `design.md`/`tasks.md`).
+- **Specs describe observable behavior** — error codes,
+  HTTP statuses, payload shapes, routing outcomes. Prefer
+  behavior-level wording, but naming the code symbol
+  (function, file, registry key) is acceptable when it
+  anchors the contract; implementation steps and library
+  choices still belong in `design.md`/`tasks.md`.
 - **Don't backfill specs** — write a spec only when a change
   touches that capability; `specs/` grows via archived
   deltas, not upfront documentation.
-- **Archive after the PR merges**, on `main` as a small
-  follow-up commit — `specs/` should only advance with work
-  that actually shipped.
+- **Archive timing**: archive the change in the
+  implementing PR when feasible — specs, code and history
+  land atomically. Otherwise archive immediately after the
+  merge in a small follow-up commit on `main`. Never leave
+  a merged change unarchived: unsynced deltas leave
+  `specs/` stale.
 - **`docs/plans/` is frozen for new feature plans** — new
   feature work goes through `openspec changes`. Existing
   `docs/plans/*` stay as history, and investigation/report

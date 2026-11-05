@@ -149,3 +149,59 @@ chapter per page, not per note.
 - **WHEN** a page of notes spans multiple verses in one chapter
 - **THEN** at most one upstream chapter fetch is made for that
   (fileset, book, chapter) tuple
+
+### Requirement: Generated-timestamps fallback for DBT audio
+
+Timestamps requests for a DBT fileset registered in
+`GENERATED_TIMESTAMPS_FILESETS` SHALL fall back to its
+`timestamps_generated/` GCS artifact when DBT answers empty
+or fails; real DBT data always wins. Registration lookup
+MUST uppercase the id and strip a `-opus16` suffix;
+unregistered ids MUST NOT read artifacts. Served rows MUST
+carry `verse_start`/`timestamp` only.
+
+#### Scenario: Empty DBT data serves the generated artifact
+
+- **WHEN** DBT returns empty timestamps data for a
+  registered fileset such as `LATLVRN1DA`
+- **THEN** the `timestamps_generated/` artifact rows are
+  returned instead
+
+#### Scenario: Real DBT data wins over the artifact
+
+- **WHEN** DBT returns non-empty timestamps data for a
+  registered fileset
+- **THEN** the DBT rows are served and no artifact read
+  occurs
+
+#### Scenario: Missing artifact preserves the empty response
+
+- **WHEN** DBT answers empty and no artifact exists
+- **THEN** the response is HTTP 200 with an empty `data`
+  list (the pre-existing empty contract)
+
+#### Scenario: DBT failure falls back to the artifact
+
+- **WHEN** the DBT timestamps call raises for a registered
+  fileset with an artifact
+- **THEN** the artifact rows are served instead of an error
+
+#### Scenario: DBT failure with no artifact re-raises
+
+- **WHEN** the DBT timestamps call raises and no artifact
+  exists
+- **THEN** the original DBT error propagates, preserving
+  the provider-error 502 contract
+
+#### Scenario: -opus16 id resolves to the base artifact
+
+- **WHEN** timestamps are requested for
+  `LATLVRN1DA-opus16`
+- **THEN** the base `LATLVRN1DA` artifact is read, because
+  opus16 variants serve the same recordings
+
+#### Scenario: Unregistered fileset never touches artifacts
+
+- **WHEN** DBT answers empty for a fileset absent from the
+  registry such as `ENGESVN2DA`
+- **THEN** an empty list is returned with no artifact read

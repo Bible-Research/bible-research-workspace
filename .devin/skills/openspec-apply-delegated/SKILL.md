@@ -62,6 +62,19 @@ stays small and survives `openspec update`.
      `gh pr create --body-file`, DRAFT PR, mandatory UI
      verification section (follow `.devin/skills/create-pr/`
      when that skill exists in the repo).
+   - archive timing: when EVERY tasks.md item is `- [x]`,
+     run `openspec archive <name>` on the feature branch
+     BEFORE pushing / opening the PR (check
+     `openspec archive --help` first — it syncs delta specs
+     into `openspec/specs/` and moves the change dir to
+     `openspec/changes/archive/`); then `openspec validate
+     --all --strict` must pass. The archive lands in the SAME
+     commits pushed for the PR — code + synced specs +
+     history together. A fully-implemented change must NOT
+     reach `gh pr ready` unarchived; a legitimately
+     unfinished task stays `- [ ]`, the change stays
+     unarchived, and the implementer reports that
+     explicitly.
    - report back: branch name, PR URL, tasks completed, any
      tasks it could not finish and why
 5. If the implementer reports a blocker (unclear task, design
@@ -79,7 +92,13 @@ stays small and survives `openspec update`.
 7. Launch a FRESH reviewer subagent (`subagent_explore`) that
    has never seen the implementation. Prompt it with:
    `gh pr diff <n>`, the change's contextFiles (proposal,
-   specs, design, tasks paths), and the repo rules. It returns
+   specs, design, tasks paths), and the repo rules. It also
+   verifies the archive is part of the PR: delta content
+   synced into `openspec/specs/`, the change dir moved under
+   `openspec/changes/archive/`, and `openspec validate
+   --all --strict` passing — a fully-implemented change with
+   no archive in the PR is a `[major]` finding, while
+   unchecked tasks explain an absent archive. It returns
    findings tagged `[blocker]`, `[major]`, `[minor]`, `[nit]`,
    or the exact string `NO ISSUES`.
 8. On `[blocker]` or `[major]` findings, launch a fixer
@@ -102,5 +121,7 @@ stays small and survives `openspec update`.
   fixer and reviewer must treat an unchecked task as incomplete
   work, not as a defect to review.
 - Final report: PR URL, branch, tasks done/total, review
-  rounds, unresolved findings, check status, and the suggested
-  next step (`/openspec-archive-change` after merge).
+  rounds, unresolved findings, check status, and whether the
+  archive was included in the PR or deferred (with the
+  reason) — the archive now lands inside the implementing
+  PR, not as a post-merge follow-up.

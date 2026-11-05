@@ -98,7 +98,9 @@ fileset model, auth quirks, caching, error contracts).
 6. **Update the repo's `DEVELOPER_GUIDE.md`** after functionality
    changes — it's the project's contract doc for future sessions.
 7. No secrets in code: backend uses `config.yaml` (gitignored) /
-   GCP Secret Manager; frontend uses `VITE_*` env vars.
+   GCP Secret Manager; frontend uses `VITE_*` env vars. Never
+   create new Secret Manager secrets — append KEY=VALUE lines to
+   the shared `env-file` secret (each extra secret adds cost).
 8. `bible_research`'s local `config.yaml` points `default` at the
    production Aiven Postgres via the read-only `ai_agent` user —
    use it for read-only investigation; pytest stays on in-memory

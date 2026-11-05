@@ -1,0 +1,26 @@
+name: OpenSpec validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: openspec validate --all --strict
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install OpenSpec CLI
+        run: npm install -g @fission-ai/openspec@1.14.3
+
+      - name: Validate specs
+        run: openspec validate --all --strict

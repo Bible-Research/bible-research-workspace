@@ -86,8 +86,8 @@ update / sync-specs / archive / explore).
    CLAUDE.md) with a short OpenSpec section: where specs live,
    CLI conventions (e.g. "run openspec from repo root"), any
    task-prefix rule, and where planning docs used to live
-   (freeze the old convention — we froze `docs/plans/` for new
-   feature plans).
+   (freeze the old convention — `docs/plans/` is fully
+   deprecated; nothing new is added there).
 7. **Smoke-test, don't dry-run a fake change.** `openspec
    list`, `openspec list --specs`, `openspec validate --all
    --strict` — all must pass. The first real change should be

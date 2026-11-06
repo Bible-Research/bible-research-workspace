@@ -10,6 +10,9 @@ description: Implement a plan markdown file end-to-end with
 
 # Implement a Plan File with Subagents
 
+**Legacy** — only for pre-existing `docs/plans/` files; new
+planning uses `openspec-propose` (see workspace AGENTS.md).
+
 Orchestrate a multi-agent implementation of a plan file (e.g.
 `note-order-move-plan.md`). This workspace has two repos:
 `bible_research/` (Django backend, GitHub

@@ -118,14 +118,15 @@ fileset model, auth quirks, caching, error contracts).
    SQLite. Details in `bible_research/AGENTS.md` ("Databases").
 9. **Test login**: when the user asks you to log in and run tests
    (UI or API), use the account `Tester5` / `password123`.
-10. **Write all plans in `docs/plans/`** — implementation plans,
-    investigations, and design docs belong in the workspace-level
-    `docs/plans/` directory as `<feature>-plan.md` (multi-file
-    plans get a subdirectory, e.g. `rust-rewrite/`), each with a
-    status header (implemented / partial / in progress / not
-    implemented / reverted). New feature plans go through
-    `openspec changes` instead — see the OpenSpec section.
-    Never put plan files inside the app subrepos.
+10. **`docs/plans/` is fully frozen** — existing implementation
+    plans, investigations, and design docs stay as history with
+    their status headers (implemented / partial / in progress /
+    not implemented / reverted), but NOTHING new is added, not
+    even investigation/report docs. All new planning goes
+    through OpenSpec (`openspec-propose` for changes,
+    `openspec-explore` and change artifacts for
+    investigations) — see the OpenSpec section. Never put plan
+    files inside the app subrepos.
 11. **Record environment/setup learnings in `AGENTS.md`.** When
     you hit local-setup, infrastructure, or missing-tooling
     friction — a CLI that isn't installed on this machine, a
@@ -180,8 +181,9 @@ must be plain `name`/`description` — extra fields like
   issue-fixing workflows for `reactive-bible` and
   `bible_research`; both include a step to check whether the fix
   belongs in the other repo.
-- `.devin/skills/implement-plan/` — execute a `docs/plans/*`
-  file with subagents.
+- `.devin/skills/implement-plan/` — legacy: executes a
+  pre-existing `docs/plans/*` file with subagents (new planning
+  uses OpenSpec — see below).
 - `.devin/skills/openspec-*/` — OpenSpec workflow skills
   (propose, apply, update, sync, archive, explore); copies of
   the CLI-installed `.agents/skills/openspec-*/` with
@@ -231,7 +233,8 @@ live at the system level — never run `openspec init` inside
   post-adoption features were planned via `docs/plans/`
   before the convention landed. No retroactive migration;
   `changes/archive/` only gains entries for work proposed
-  through `openspec changes`.
+  through `openspec changes`. The `docs/plans/` freeze is
+  now total (rule 10).
 - **When to use it**: features, breaking changes, contract
   changes, anything a reviewer would ask "why?" about.
   **Skip the ceremony** for bug fixes restoring spec'd
@@ -260,10 +263,11 @@ live at the system level — never run `openspec init` inside
   not (edit the spec directly). A spec that no longer
   matches shipped behavior is a bug, not documentation
   drift.
-- **`docs/plans/` is frozen for new feature plans** — new
-  feature work goes through `openspec changes`. Existing
-  `docs/plans/*` stay as history, and investigation/report
-  docs (non-feature) still belong there per rule 10.
+- **`docs/plans/` is fully frozen** — new feature work goes
+  through `openspec changes`, and investigations/reports go
+  through `openspec-explore` and change artifacts. Nothing
+  new is added to `docs/plans/` (rule 10); existing files
+  stay as history.
 
 ## Documentation map (and staleness)
 
@@ -274,11 +278,11 @@ live at the system level — never run `openspec init` inside
   auth, comments, mentions, Android.
 - `reactive-bible/docs/` — test documentation
   (`TAG_REFRESH_TESTS.md`).
-- `docs/plans/` — historical implementation
+- `docs/plans/` — frozen archive of historical implementation
   plans/investigations, incl. `docs/plans/rust-rewrite/`
   (multi-file). Each doc carries a status header: implemented /
-  partial / in progress / not implemented / reverted. Frozen
-  for new feature plans — see the OpenSpec section.
+  partial / in progress / not implemented / reverted. Nothing
+  new is added — see rule 10 and the OpenSpec section.
 - `openspec/` — spec-driven planning layer: `specs/`
   (capability contracts), `changes/` + `changes/archive/`
   (change lifecycle), `config.yaml` (project context).

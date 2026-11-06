@@ -92,10 +92,10 @@ pages can count public-note comments.
 
 The frontend SHALL use two helpers from
 `src/utils/apiClient.ts`: `publicFetch` attaches the token when
-present, retries a 401 once anonymously (a stale token must not
-break public content), and never logs out;
+present, retries a 401 once anonymously, and never logs out;
 `authenticatedFetch` logs out and shows a "session expired"
-notification on 401. `publicFetch` is for bible content,
+notification only on a 401 to a request carrying the session's
+current token. `publicFetch` is for bible content,
 `authenticatedFetch` for user-owned resources. Network-failure
 retry SHALL fire only for idempotent methods (GET/HEAD/
 OPTIONS).
@@ -109,9 +109,17 @@ OPTIONS).
 
 #### Scenario: 401 on user-owned resource
 
-- **WHEN** `authenticatedFetch` receives a 401
+- **WHEN** `authenticatedFetch` carrying the session's
+  current token receives a 401
 - **THEN** the user is logged out and a "session expired"
   notification is shown
+
+#### Scenario: Anonymous or rotated-token 401 keeps session
+
+- **WHEN** `authenticatedFetch` receives a 401 on a request
+  issued anonymously or whose token has since rotated
+- **THEN** it throws without logging out or showing a
+  "session expired" notification
 
 #### Scenario: Non-idempotent request is not retried
 

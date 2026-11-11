@@ -165,15 +165,35 @@ Universal rules — follow exactly:
   costs (e.g. Terraform that scales up infra, code that keeps
   services running constantly) — flag those to the user
   instead of merging.
-- **Parallel-agent worktrees**: `git -C <repo> worktree add
-  <path>` resolves `<path>` relative to the REPO root, not the
-  caller's cwd — `worktrees/x` lands in `<repo>/worktrees/x`.
-  Nested worktrees work fine: `.eslintrc.cjs` has `root: true`
-  on main (merged via #215) so `npm run lint` no longer
-  cascades into the parent checkout's config. Backend agents:
-  each worktree needs its own venv (`python3 -m venv .venv`)
-  and a `config.yaml` symlink to the main checkout's (it's
-  gitignored, so worktrees don't get one).
+- **Worktrees are mandatory for all implementation work** —
+  never edit/commit in a subrepo's main checkout: it may hold
+  the user's uncommitted work or another agent's session. For
+  every task: `git -C <repo> fetch origin`, then
+  `git -C <repo> worktree add worktrees/<slug>
+  -b <type>/<slug> origin/main` and do all work — commits,
+  push, PR — inside it; follow-up requests get a FRESH
+  worktree, never a reused one. Once the PR's checks are
+  green and no work remains, clean up IMMEDIATELY — don't
+  wait for the merge (the PR lives on the remote branch;
+  removing the local worktree/branch does not touch it, and
+  the remote branch is deleted at merge time). From the main
+  checkout: `git -C <repo> worktree remove
+  worktrees/<slug>` + `git -C <repo> branch -D
+  <type>/<slug>` (`-D`, not `-d` — squash-merges leave the
+  branch "unmerged"); abandoned/rejected work gets the same
+  cleanup. Goal state: `git -C <repo> worktree list` shows
+  only the main checkout when the task ends.
+  `git -C <repo> worktree add <path>` resolves `<path>`
+  relative to the REPO root, not the caller's cwd —
+  `worktrees/x` lands in `<repo>/worktrees/x` (each repo
+  gitignores `worktrees/`). Nested worktrees work fine:
+  `.eslintrc.cjs` has `root: true` on main (merged via #215)
+  so `npm run lint` no longer cascades into the parent
+  checkout's config. Backend agents: each worktree needs its
+  own venv (`python3 -m venv .venv`) and a `config.yaml`
+  symlink to the main checkout's (gitignored — worktrees
+  don't get one); reactive-bible worktrees need their own
+  `npm install`.
 - Never put plan files inside the app subrepos — planning
   lives at the workspace root only (rule 11 + OpenSpec below).
 

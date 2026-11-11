@@ -122,7 +122,7 @@ ask the user.
 - Stage only files you edited (never `git add -A`). Commit
   format `Type: Capitalized message`.
 - Push `-u origin`, then draft PR `--base main` per
-  `.devin/workflows/create-pr.md` (body via `--body-file`).
+  `.devin/skills/create-pr/` (body via `--body-file`).
 - Body must: link the Sentry issue URL
   (`https://bible-research.sentry.io/issues/<id>/` — EU orgs
   also accept de.sentry.io URLs), quote the top stack frame

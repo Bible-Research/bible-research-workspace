@@ -61,7 +61,7 @@ background so they run in parallel. Each prompt must include:
        `Type: Capitalized msg`.
        Push: git push -u origin feat/<slug>
     6. Open a DRAFT PR with --base main following
-       .devin/workflows/create-pr.md at the workspace root —
+       .devin/skills/create-pr/ at the workspace root —
        write the body to pr-body.md, use --body-file, rm it
        after. Body must include a UI-verification section and
        reference the other repo's PR if the plan has both.

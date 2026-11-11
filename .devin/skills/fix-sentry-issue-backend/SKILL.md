@@ -92,7 +92,7 @@ cross-repo check below.
 ## 4. Draft PR
 
 - Push `-u origin`, draft PR `--base main` per
-  `.devin/workflows/create-pr.md` (body via `--body-file`).
+  `.devin/skills/create-pr/` (body via `--body-file`).
 - Body must link the Sentry issue URL
   (`https://bible-research.sentry.io/issues/<id>/`), quote the
   top stack frame and request path, and include a verification

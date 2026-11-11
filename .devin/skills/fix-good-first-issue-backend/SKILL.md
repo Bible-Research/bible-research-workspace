@@ -124,7 +124,7 @@ stop and ask the user before proceeding.
       git push -u origin fix/issue-<N>-<short-slug>
 
 - Create the PR as a DRAFT with `--base main`. Follow
-  `.devin/workflows/create-pr.md` (workspace root): write the body
+  `.devin/skills/create-pr/` (workspace root): write the body
   to a temp file and use `--body-file` (never inline `--body`):
 
       gh pr create --draft \

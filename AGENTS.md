@@ -85,87 +85,97 @@ fileset model, auth quirks, caching, error contracts).
 
 ## Workspace-wide rules (apply everywhere)
 
-1. **79-char max line length in every file type** (py, ts, md).
-   Verify: `awk 'length > 79 {print FILENAME":"NR}' <file>`.
-   Match the file's style when wrapping (split imports, break
-   args/props onto their own lines). Fix violations you
-   introduce, plus pre-existing long lines in files you are
-   already modifying.
-2. **Never run DB migrations** (`makemigrations`, `migrate`,
-   `sqlmigrate`), even if a task seems to need them (e.g. tests
-   failing on missing tables). Tell the user the needed command
-   and let them run it.
-3. **Commit format**: `Type: Capitalized message` —
+Universal rules — follow exactly:
+
+1. **Max 79 chars per line, every file type.** Verify:
+   `awk 'length > 79 {print FILENAME":"NR}' <file>`. Fix
+   violations you introduce plus long lines in files already
+   being modified. Exempt: formatter output (e.g. Prettier at
+   printWidth 80 may emit 80-char lines) and vendored upstream
+   skill files under `.agents/skills/` and `.devin/skills/`
+   (`openspec-*`, `vercel-react-best-practices/`) — refresh
+   tools own them.
+2. **Commit format** `Type: Capitalized message` —
    `Feat:`/`Fix:`/`Docs:`/`Refactor:`/`Test:`/`Chore:`.
-4. **Commits/PRs happen inside each subrepo**, on feature
-   branches (never `main`). Stage only files you created or
-   modified this session — never `git add -A`, `git add .`, or
-   `git commit -a`; stage each file by path and confirm the
-   staged set with `git status` first. Leave the user's own
-   dirty files alone; never commit plan/scratch markdown
-   (`*-plan.md`, `PR_DESCRIPTION.md`…).
-5. **PR creation**: write the body to a temp file and use
-   `gh pr create --body-file` — see `.devin/workflows/create-pr.md`.
-6. **Update the repo's `DEVELOPER_GUIDE.md`** after functionality
-   changes — it's the project's contract doc for future sessions.
-7. No secrets in code: backend uses `config.yaml` (gitignored) /
-   GCP Secret Manager; frontend uses `VITE_*` env vars. Never
-   create new Secret Manager secrets — append KEY=VALUE lines to
-   the shared `env-file` secret (each extra secret adds cost).
-8. `bible_research`'s local `config.yaml` points `default` at the
-   production Aiven Postgres via the read-only `ai_agent` user —
-   use it for read-only investigation; pytest stays on in-memory
-   SQLite. Details in `bible_research/AGENTS.md` ("Databases").
-9. **Test login**: when the user asks you to log in and run tests
-   (UI or API), use the account `Tester5` / `password123`.
-10. **`docs/plans/` is fully frozen** — existing implementation
-    plans, investigations, and design docs stay as history with
-    their status headers (implemented / partial / in progress /
-    not implemented / reverted), but NOTHING new is added, not
-    even investigation/report docs. All new planning goes
+3. **Commit on feature branches only, never `main`.**
+   Name branches `<type>/<slug>` with the commit types
+   (`feat/`, `fix/`, `docs/`, `refactor/`, `test/`, `chore/`).
+   Stage only files changed this session, by path — never
+   `git add -A`, `git add .` or `git commit -a`; confirm the
+   staged set with `git status` first; leave the user's own
+   dirty files alone; never commit plan/scratch markdown.
+4. **Dangerous commands — never run** the destructive/deploy
+   commands listed under "Repo-specific rules" below; write
+   the change and tell the user the command to run instead.
+5. **Scoped verification** — run only the tests/checks for
+   what you changed, not the whole suite.
+6. **PR bodies go to a temp file** + `gh pr create
+   --body-file`, never inline `--body`; delete the temp file
+   after. See `.devin/skills/create-pr/`.
+7. **Every PR body includes a UI verification / QC section** —
+   concrete steps (pages, clicks, expected result) exercising
+   the change end-to-end through the UI. Omit only when
+   genuinely unreachable from the UI — then give an
+   equivalent (curl command, log line, file to inspect).
+8. **GitHub remote targeting**: when `origin` is the user's
+   fork (an `upstream` remote exists), ALL GitHub operations
+   — issues, PRs, comments, releases — target the fork via
+   `--repo <owner>/<fork>`; never upstream unless asked.
+   Otherwise `origin` is the target.
+9. **No secrets in code.** Secrets live in gitignored local
+   files / env vars / GCP Secret Manager. Never create new
+   Secret Manager secrets — append KEY=VALUE lines to the
+   shared `env-file` secret (each extra secret adds cost).
+10. **Update docs after functionality changes** — this file
+    and the repo's other contract docs (README /
+    DEVELOPER_GUIDE / docs/*) — in the same change.
+11. **`docs/plans/` is frozen** — existing files stay as
+    history with their status headers (implemented / partial /
+    in progress / not implemented / reverted); nothing new is
+    added there or anywhere else — all new planning goes
     through OpenSpec (`openspec-propose` for changes,
-    `openspec-explore` and change artifacts for
-    investigations) — see the OpenSpec section. Never put plan
-    files inside the app subrepos.
-11. **Record environment/setup learnings in `AGENTS.md`.** When
-    you hit local-setup, infrastructure, or missing-tooling
-    friction — a CLI that isn't installed on this machine, a
-    non-obvious way to spin the project up locally, a required
-    tool version or local-only path — don't burn time trying
-    many failing alternatives. If a needed tool is missing,
-    tell the user what to install rather than working around it
-    repeatedly. And whenever you do figure out the working flow
-    or a local quirk, write it into the relevant `AGENTS.md`
-    (this file for workspace-level, the subrepo's for
-    repo-specific) so the next agent uses it directly — commit
-    that doc update alongside the work that discovered it.
-12. **`gcloud`, `gh`, `node`/`npm`, `openspec` are installed
-    but not on agent PATH.** They live under
-    `/opt/homebrew/bin` (Homebrew); agent shells only get
-    `/usr/bin:/bin:/usr/sbin:/sbin`, so prefix commands with
-    `export PATH="/opt/homebrew/bin:$PATH"` on every exec call —
-    env does not persist between calls. Authenticated account:
-    `tedis.rozenfelds@gmail.com`; open billing account
-    `016064-8B1D40-715CAA`. Projects incl.
-    `bible-research-489314`, `django-apps-7345`,
-    `gen-lang-client-0833674612` (Industry Analyser).
-13. **Merging PRs on user request**: when the user asks you to
-    merge a pull request, do it — `gh pr merge <N> --squash
-    --admin` is allowed even when a required review is unmet;
-    don't block on branch-protection review requirements. The
-    only reason to hold back is if the merge could introduce
-    significant ongoing costs (e.g. Terraform changes that
-    scale up infra, code that keeps services running
-    constantly) — flag those to the user instead of merging.
-14. **Parallel-agent worktrees**: `git -C <repo> worktree add
-    <path>` resolves `<path>` relative to the REPO root, not the
-    caller's cwd — `worktrees/x` lands in `<repo>/worktrees/x`.
-    Nested worktrees work fine: `.eslintrc.cjs` has `root: true`
-    on main (merged via #215) so `npm run lint` no longer
-    cascades into the parent checkout's config. Backend agents:
-    each worktree needs its own venv (`python3 -m venv .venv`)
-    and a `config.yaml` symlink to the main checkout's (it's
-    gitignored, so worktrees don't get one).
+    `openspec-explore`/change artifacts for investigations).
+12. **This file is self-updating.** Missing tool → tell the
+    user what to install instead of grinding through failing
+    alternatives. Discovered flow/local quirk → write it into
+    the relevant AGENTS.md and commit that doc update
+    alongside the work that discovered it.
+
+### Repo-specific rules
+
+- **Dangerous commands — never run**: `makemigrations`,
+  `migrate`, `sqlmigrate` (even if a task seems to need them,
+  e.g. tests failing on missing tables — tell the user the
+  needed command); `gcloud app deploy` and other mutating
+  `gcloud` calls; `terraform apply`; creating any
+  preview/staging/ephemeral resources (see Deployments).
+- **Commits/PRs happen inside each subrepo** on feature
+  branches — the root repo only tracks workspace config/docs.
+- `bible_research`'s local `config.yaml` points `default` at
+  the production Aiven Postgres via the read-only `ai_agent`
+  user — use it for read-only investigation; pytest stays on
+  in-memory SQLite. Details in `bible_research/AGENTS.md`
+  ("Databases").
+- **Test login**: `Tester5` / `password123` — use it when
+  asked to log in and run tests (UI or API).
+- **Merging PRs on user request**: `gh pr merge <N> --squash
+  --admin` is allowed even when a required review is unmet —
+  don't block on branch-protection review requirements. Hold
+  back only if the merge could introduce significant ongoing
+  costs (e.g. Terraform that scales up infra, code that keeps
+  services running constantly) — flag those to the user
+  instead of merging.
+- **Parallel-agent worktrees**: `git -C <repo> worktree add
+  <path>` resolves `<path>` relative to the REPO root, not the
+  caller's cwd — `worktrees/x` lands in `<repo>/worktrees/x`.
+  Nested worktrees work fine: `.eslintrc.cjs` has `root: true`
+  on main (merged via #215) so `npm run lint` no longer
+  cascades into the parent checkout's config. Backend agents:
+  each worktree needs its own venv (`python3 -m venv .venv`)
+  and a `config.yaml` symlink to the main checkout's (it's
+  gitignored, so worktrees don't get one).
+- Never put plan files inside the app subrepos — planning
+  lives at the workspace root only (rule 11 + OpenSpec below).
 
 ## Agent config layout
 
@@ -189,12 +199,12 @@ must be plain `name`/`description` — extra fields like
   the CLI-installed `.agents/skills/openspec-*/` with
   frontmatter stripped to `name`/`description` (see OpenSpec
   section below).
+- `.devin/skills/create-pr/` — PR body via `--body-file`.
 - `reactive-bible/.agents/skills/vercel-react-best-practices/` —
   React perf rules.
 
 Other `.devin/` entries:
 
-- `.devin/workflows/create-pr.md` — PR body via `--body-file`.
 - `.devin/config.local.json` — permission allowlist (untracked).
 
 ## OpenSpec
@@ -213,7 +223,9 @@ live at the system level — never run `openspec init` inside
   or archiving. It must pass before committing; strict mode
   catches >500-char requirement bodies and spec/delta drift.
 - The CLI is a global npm install — it lives in
-  `/opt/homebrew/bin` next to `node`/`npm` (rule 12).
+  `/opt/homebrew/bin` next to `node`/`npm`, which is not on
+  agent-shell PATH (see the machine-environment notes in
+  `~/.config/devin/AGENTS.md`).
 - `openspec/specs/` holds capability specs (current behavior as
   source of truth): `provider-routing`, `error-contract`,
   `auth` — grow as real changes touch new areas.
@@ -234,7 +246,7 @@ live at the system level — never run `openspec init` inside
   before the convention landed. No retroactive migration;
   `changes/archive/` only gains entries for work proposed
   through `openspec changes`. The `docs/plans/` freeze is
-  now total (rule 10).
+  now total (rule 11).
 - **When to use it**: features, breaking changes, contract
   changes, anything a reviewer would ask "why?" about.
   **Skip the ceremony** for bug fixes restoring spec'd
@@ -266,7 +278,7 @@ live at the system level — never run `openspec init` inside
 - **`docs/plans/` is fully frozen** — new feature work goes
   through `openspec changes`, and investigations/reports go
   through `openspec-explore` and change artifacts. Nothing
-  new is added to `docs/plans/` (rule 10); existing files
+  new is added to `docs/plans/` (rule 11); existing files
   stay as history.
 
 ## Documentation map (and staleness)
@@ -282,7 +294,7 @@ live at the system level — never run `openspec init` inside
   plans/investigations, incl. `docs/plans/rust-rewrite/`
   (multi-file). Each doc carries a status header: implemented /
   partial / in progress / not implemented / reverted. Nothing
-  new is added — see rule 10 and the OpenSpec section.
+  new is added — see rule 11 and the OpenSpec section.
 - `openspec/` — spec-driven planning layer: `specs/`
   (capability contracts), `changes/` + `changes/archive/`
   (change lifecycle), `config.yaml` (project context).

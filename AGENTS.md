@@ -166,7 +166,7 @@ Universal rules — follow exactly:
   services running constantly) — flag those to the user
   instead of merging.
 - **Worktrees are mandatory for all implementation work** —
-  never edit/commit in a subrepo's main checkout: it may hold
+  never edit/commit in any repo's main checkout: it may hold
   the user's uncommitted work or another agent's session. For
   every task: `git -C <repo> fetch origin`, then
   `git -C <repo> worktree add worktrees/<slug>
@@ -197,7 +197,7 @@ Universal rules — follow exactly:
   `.eslintrc.cjs` has `root: true` on main (merged via #215)
   so `npm run lint` no longer cascades into the parent
   checkout's config. Backend agents: each worktree needs its
-  own venv (`python3 -m venv .venv`) and a `config.yaml`
+  own venv (`python3 -m venv venv`) and a `config.yaml`
   symlink to the main checkout's (gitignored — worktrees
   don't get one); reactive-bible worktrees need their own
   `npm install`.

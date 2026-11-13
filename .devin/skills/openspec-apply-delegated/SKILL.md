@@ -38,10 +38,13 @@ stays small and survives `openspec update`.
      subagent prompt.
 
 3. Branch `feat/<change-name>` unless the user says otherwise.
-   Never `main` — and never a subrepo's main checkout: the
+   Never `main` — and never a repo's main checkout: the
    implementer works in a worktree per touched repo
    (`git -C <repo> worktree add worktrees/<change-name>
-   -b feat/<change-name> origin/main`, AGENTS.md).
+   -b feat/<change-name> origin/main`, AGENTS.md). That
+   includes a worktree at the workspace ROOT repo — the
+   change's tasks.md checkmarks and the archive commit
+   land there, not in the app subrepos.
 
 ## Phase 2 — implementer agent
 
@@ -67,18 +70,18 @@ stays small and survives `openspec update`.
      `.devin/skills/create-pr/` when that skill exists in the
      repo).
    - archive timing: when EVERY tasks.md item is `- [x]`,
-     run `openspec archive <name>` on the feature branch
-     BEFORE pushing / opening the PR (check
+     run `openspec archive <name>` in the ROOT-repo worktree
+     BEFORE pushing / opening PRs (check
      `openspec archive --help` first — it syncs delta specs
      into `openspec/specs/` and moves the change dir to
      `openspec/changes/archive/`); then `openspec validate
-     --all --strict` must pass. The archive lands in the SAME
-     commits pushed for the PR — code + synced specs +
-     history together. A fully-implemented change must NOT
-     reach PR completion unarchived; a legitimately
-     unfinished task stays `- [ ]`, the change stays
-     unarchived, and the implementer reports that
-     explicitly.
+     --all --strict` must pass. `openspec/` is tracked by the
+     root repo, so the archive lands in a root-repo PR on
+     `feat/<change-name>` opened alongside the subrepo
+     PR(s). A fully-implemented change must NOT reach PR
+     completion unarchived; a legitimately unfinished task
+     stays `- [ ]`, the change stays unarchived, and the
+     implementer reports that explicitly.
    - report back: branch name, PR URL, tasks completed, any
      tasks it could not finish and why
 5. If the implementer reports a blocker (unclear task, design
@@ -97,17 +100,23 @@ stays small and survives `openspec update`.
    has never seen the implementation. Prompt it with:
    `gh pr diff <n>`, the change's contextFiles (proposal,
    specs, design, tasks paths), and the repo rules. It also
-   verifies the archive is part of the PR: delta content
-   synced into `openspec/specs/`, the change dir moved under
-   `openspec/changes/archive/`, and `openspec validate
-   --all --strict` passing — a fully-implemented change with
-   no archive in the PR is a `[major]` finding, while
+   verifies the archive is part of the root-repo PR: delta
+   content synced into `openspec/specs/`, the change dir
+   moved under `openspec/changes/archive/`, and `openspec
+   validate --all --strict` passing — a fully-implemented
+   change with no archive PR is a `[major]` finding, while
    unchecked tasks explain an absent archive. It returns
    findings tagged `[blocker]`, `[major]`, `[minor]`, `[nit]`,
    or the exact string `NO ISSUES`.
 8. On `[blocker]` or `[major]` findings, launch a fixer
    subagent (`subagent_general`) on the SAME branch to commit
-   and push fixes. Then start a new round with a NEW reviewer.
+   and push fixes. A branch can live in only one worktree —
+   if the implementer's worktree still holds it, remove that
+   worktree first (`git -C <repo> worktree remove
+   worktrees/<change-name>`), then the fixer attaches a
+   fresh one (`git -C <repo> worktree add
+   worktrees/fix-<change-name> feat/<change-name>` — no
+   `-b`). Then start a new round with a NEW reviewer.
    Repeat until `NO ISSUES` (or only `[minor]`/`[nit]`) — max
    3 rounds, then stop and report what remains.
 9. Never let the implementer or a fixer review its own work —

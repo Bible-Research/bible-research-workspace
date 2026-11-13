@@ -98,9 +98,11 @@ never reuse the implementers. Prompt:
 If any reviewer reported blocker/should-fix findings:
 
 1. Launch one `subagent_general` fixer per affected PR in a
-   FRESH worktree attached to the PR branch:
-   `git -C <repo-dir> worktree add worktrees/fix-<slug>
-   feat/<slug>` (no `-b` — the branch already exists).
+   FRESH worktree — a branch can live in only one worktree,
+   so remove the implementer's first (`git -C <repo-dir>
+   worktree remove worktrees/<slug>`), then attach a fresh
+   one to the existing PR branch (`git -C <repo-dir>
+   worktree add worktrees/fix-<slug> feat/<slug>` — no `-b`).
    Prompt: the PR URL, the numbered findings verbatim, "fix,
    commit (`Fix: ...`), push, re-watch `gh pr checks`, return
    what changed". Nits may be batched into one fixer or skipped
@@ -122,8 +124,9 @@ If any reviewer reported blocker/should-fix findings:
   stop and ask the user rather than improvising.
 
 Once a PR's review round is clean AND its checks are green,
-remove that worktree immediately — `git -C <repo> worktree
-remove worktrees/<slug>` + `git -C <repo> branch -D
+remove every worktree created for it immediately — `git -C
+<repo> worktree remove worktrees/<slug>` (and any
+`worktrees/fix-<slug>`) + `git -C <repo> branch -D
 feat/<slug>` per AGENTS.md; don't wait for merge.
 
 ## Final report

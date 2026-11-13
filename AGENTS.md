@@ -292,7 +292,7 @@ live at the system level — never run `openspec init` inside
 - **Archive timing**: archive the change in the
   implementing PR when feasible — specs, code and history
   land atomically. Otherwise archive immediately after the
-  merge in a small follow-up commit on `main`. Never leave
+  merge in a small follow-up PR. Never leave
   a merged change unarchived: unsynced deltas leave
   `specs/` stale.
 - **Update specs in the same PR as the code.** Any change

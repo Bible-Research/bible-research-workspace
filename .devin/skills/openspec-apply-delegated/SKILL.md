@@ -112,10 +112,10 @@ stays small and survives `openspec update`.
 8. On `[blocker]` or `[major]` findings, launch a fixer
    subagent (`subagent_general`) on the SAME branch to commit
    and push fixes. A branch can live in only one worktree —
-   if the implementer's worktree still holds it, remove that
-   worktree first (`git -C <repo> worktree remove
-   worktrees/<change-name>`), then the fixer attaches a
-   fresh one (`git -C <repo> worktree add
+   remove whichever currently holds it (`git -C <repo>
+   worktree list` to find it; `git -C <repo> worktree
+   remove --force worktrees/<name>`), then the fixer
+   attaches a fresh one (`git -C <repo> worktree add
    worktrees/fix-<change-name> feat/<change-name>` — no
    `-b`). Then start a new round with a NEW reviewer.
    Repeat until `NO ISSUES` (or only `[minor]`/`[nit]`) — max
@@ -136,9 +136,11 @@ stays small and survives `openspec update`.
   fixer and reviewer must treat an unchecked task as incomplete
   work, not as a defect to review.
 - Once the loop is clean AND the PR's checks are green,
-  remove the worktree(s) immediately (`git -C <repo>
-  worktree remove --force worktrees/<change-name>` + `git -C <repo>
-  branch -D feat/<change-name>`) — don't wait for merge.
+  remove every worktree the run created immediately
+  (`git -C <repo> worktree remove --force
+  worktrees/<change-name>` and any `worktrees/fix-<name>`,
+  then `git -C <repo> branch -D feat/<change-name>`) —
+  don't wait for merge.
 - Final report: PR URL, branch, tasks done/total, review
   rounds, unresolved findings, check status, and whether the
   archive was included in the PR or deferred (with the

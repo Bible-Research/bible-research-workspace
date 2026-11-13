@@ -318,5 +318,10 @@ live at the system level — never run `openspec init` inside
 - `openspec/` — spec-driven planning layer: `specs/`
   (capability contracts), `changes/` + `changes/archive/`
   (change lifecycle), `config.yaml` (project context).
+- `docs/research/` — committed reference/source documents
+  (e.g. `ChronologyOfTheFourGospels.pdf`). New
+  research/audit reports belong here going forward;
+  `docs/plans/codebase-health-review/` predates this dir but
+  stays put under the freeze.
 - `bible_research/docs/` — GCP / Artifact Registry cleanup
   runbooks.

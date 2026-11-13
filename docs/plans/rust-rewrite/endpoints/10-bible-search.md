@@ -1,5 +1,7 @@
 # 10 — `GET /api/v1/bible/search/` (BibleSearchView)
 
+Status: PLAN. Builds on `00-base.md`; nothing implemented.
+
 Size: L. Sources: `bible/views.py:338-643` (view + OpenAPI
 params), `bible/services/search_grouping.py` (whole file),
 `bible/services/dbt/client.py:318-373`,

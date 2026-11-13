@@ -100,12 +100,16 @@ fix-sentry-issue-backend branch/PR flow against
 `Bible-Research/bible_research`. If unsure, state reasoning and
 ask the user.
 
-## 4. Branch and fix
+## 4. Branch and fix — in a worktree
 
-    git -C reactive-bible switch main
-    git -C reactive-bible pull --ff-only
-    git -C reactive-bible switch -c fix/sentry-<issue_short_id>
+    git -C reactive-bible fetch origin
+    git -C reactive-bible worktree add worktrees/sentry-<id> \
+      -b fix/sentry-<issue_short_id> origin/main
     # or: fix/report-<event_id_prefix> for user reports
+
+Do all work inside `reactive-bible/worktrees/sentry-<id>` —
+never branch in the subrepo's main checkout (AGENTS.md). It
+needs its own `npm install`.
 
 - Read `reactive-bible/AGENTS.md`; 79-char lines everywhere.
 - Write a failing test reproducing the event first, then fix.

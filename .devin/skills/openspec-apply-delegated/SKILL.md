@@ -5,8 +5,7 @@ description: >
   implementer agent cuts a feature branch, works the task list,
   and opens a PR ready for review; once checks are green a
   fresh reviewer agent reports severity-tagged findings and
-  fixer agents
-  iterate until clean. Use when asked to implement an OpenSpec
+  fixer agents iterate until clean. Use when asked to implement an OpenSpec
   change end-to-end without driving the task loop interactively.
 ---
 
@@ -38,8 +37,11 @@ stays small and survives `openspec update`.
      through to every openspec command here and inside the
      subagent prompt.
 
-3. Branch: `feat/<change-name>` unless the user says otherwise.
-   Never `main`.
+3. Branch `feat/<change-name>` unless the user says otherwise.
+   Never `main` — and never a subrepo's main checkout: the
+   implementer works in a worktree per touched repo
+   (`git -C <repo> worktree add worktrees/<change-name>
+   -b feat/<change-name> origin/main`, AGENTS.md).
 
 ## Phase 2 — implementer agent
 
@@ -123,6 +125,10 @@ stays small and survives `openspec update`.
 - Tasks that cannot be finished stay unchecked (`- [ ]`) — the
   fixer and reviewer must treat an unchecked task as incomplete
   work, not as a defect to review.
+- Once the loop is clean AND the PR's checks are green,
+  remove the worktree(s) immediately (`git -C <repo>
+  worktree remove worktrees/<change-name>` + `git -C <repo>
+  branch -D feat/<change-name>`) — don't wait for merge.
 - Final report: PR URL, branch, tasks done/total, review
   rounds, unresolved findings, check status, and whether the
   archive was included in the PR or deferred (with the

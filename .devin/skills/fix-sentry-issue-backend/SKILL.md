@@ -63,11 +63,16 @@ cross-repo check below.
   caught server bug vs untagged unhandled 500), request URL/
   view, release (`GAE_VERSION`), breadcrumbs.
 
-## 3. Reproduce and fix
+## 3. Reproduce and fix — in a worktree
 
-    git -C bible_research switch main
-    git -C bible_research pull --ff-only
-    git -C bible_research switch -c fix/sentry-<issue_short_id>
+    git -C bible_research fetch origin
+    git -C bible_research worktree add worktrees/sentry-<id> \
+      -b fix/sentry-<issue_short_id> origin/main
+
+Do all work inside `bible_research/worktrees/sentry-<id>` —
+never branch in the subrepo's main checkout (AGENTS.md). It
+needs its own venv plus a `config.yaml` symlink to the main
+checkout's.
 
 - Read `bible_research/AGENTS.md` FIRST; 79-char lines
   everywhere.

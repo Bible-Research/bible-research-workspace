@@ -74,16 +74,15 @@ Outcomes:
 
 If unsure, state your reasoning and ask the user before proceeding.
 
-## 3. Branch from `main`
+## 3. Branch from `main` — in a worktree
 
-Switch to `main`, update it, and create the fix branch from it:
+    git -C bible_research fetch origin
+    git -C bible_research worktree add worktrees/issue-<N> \
+      -b fix/issue-<N>-<short-slug> origin/main
 
-    git -C bible_research switch main
-    git -C bible_research pull --ff-only
-    git -C bible_research switch -c fix/issue-<N>-<short-slug>
-
-If the working tree has uncommitted changes that block the switch,
-stop and ask the user before proceeding.
+Do all work inside `bible_research/worktrees/issue-<N>` — never
+branch in the subrepo's main checkout (AGENTS.md). It needs its
+own venv plus a `config.yaml` symlink to the main checkout's.
 
 ## 4. Fix the issue
 
@@ -144,8 +143,8 @@ stop and ask the user before proceeding.
 - If any check fails, get details
   (`gh pr checks <PR-number>` for links, `gh run view --log-failed`
   for logs), fix the code, commit, push, and watch again.
-- Repeat until every check passes. Do not mark ready while checks
-  are pending or failing. (If the repo reports no checks at all,
+- Repeat until every check passes — the worktree stays up until
+  they do. (If the repo reports no checks at all,
   note that and continue.)
 
 ## 7. Reviewer loop, then report

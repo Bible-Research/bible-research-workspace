@@ -41,8 +41,11 @@ background so they run in parallel. Each prompt must include:
     Implement the <backend|frontend> portion of <plan-file>
     (absolute path) in the <repo-dir>/ repo.
 
-    1. cd <repo-dir>; git switch main && git pull --ff-only;
-       git switch -c feat/<slug>
+    1. git -C <repo-dir> fetch origin; git -C <repo-dir>
+       worktree add worktrees/<slug> -b feat/<slug>
+       origin/main; cd <repo-dir>/worktrees/<slug>
+       (worktrees are mandatory — never branch in the
+       subrepo's main checkout, AGENTS.md)
     2. Read <conventions-file> first
        (bible_research/AGENTS.md or reactive-bible/AGENTS.md).
        Every line <= 79 chars in every file type.
@@ -66,7 +69,6 @@ background so they run in parallel. Each prompt must include:
        after. Body must include a UI-verification section and
        reference the other repo's PR if the plan has both.
     7. gh pr checks <N> --watch; fix failures until green.
-       PRs are opened ready for review — never drafts.
     Return: PR URL, files changed, test results, anything you
     could not do.
 
@@ -95,9 +97,10 @@ never reuse the implementers. Prompt:
 
 If any reviewer reported blocker/should-fix findings:
 
-1. Launch one `subagent_general` fixer per affected PR (the PR
-   branch is still checked out in that repo — verify with
-   `git -C <repo-dir> branch --show-current`, else switch to it).
+1. Launch one `subagent_general` fixer per affected PR in a
+   FRESH worktree attached to the PR branch:
+   `git -C <repo-dir> worktree add worktrees/fix-<slug>
+   feat/<slug>` (no `-b` — the branch already exists).
    Prompt: the PR URL, the numbered findings verbatim, "fix,
    commit (`Fix: ...`), push, re-watch `gh pr checks`, return
    what changed". Nits may be batched into one fixer or skipped
@@ -118,7 +121,13 @@ If any reviewer reported blocker/should-fix findings:
 - If a subagent reports the plan is unimplementable as written,
   stop and ask the user rather than improvising.
 
+Once a PR's review round is clean AND its checks are green,
+remove that worktree immediately — `git -C <repo> worktree
+remove worktrees/<slug>` + `git -C <repo> branch -D
+feat/<slug>` per AGENTS.md; don't wait for merge.
+
 ## Final report
 
-PR URLs, review rounds needed, findings fixed per round, and any
+PR URLs, review rounds needed, findings fixed per round,
+confirmation each worktree was removed, and any
 outstanding items (e.g. a migration command the user must run).

@@ -2,7 +2,7 @@
 name: implement-plan
 description: Implement a plan markdown file end-to-end with
   subagents — run parallel frontend/backend implementation agents
-  (one draft PR per repo), then review the PRs with fresh reviewer
+  (one PR per repo), then review the PRs with fresh reviewer
   agents and iterate fix rounds until reviewers report no issues.
   Invoke when the user asks to implement/execute a plan file
   (e.g. *-plan.md) using agents.
@@ -60,13 +60,13 @@ background so they run in parallel. Each prompt must include:
        commit plan/scratch md). Format:
        `Type: Capitalized msg`.
        Push: git push -u origin feat/<slug>
-    6. Open a DRAFT PR with --base main following
-       .devin/skills/create-pr/ at the workspace root —
+    6. Open a PR (ready for review — never a draft) with
+       --base main following .devin/skills/create-pr/ at the workspace root —
        write the body to pr-body.md, use --body-file, rm it
        after. Body must include a UI-verification section and
        reference the other repo's PR if the plan has both.
-    7. gh pr checks <N> --watch; fix failures until green, then
-       gh pr ready <N>.
+    7. gh pr checks <N> --watch; fix failures until green.
+       PRs are opened ready for review — never drafts.
     Return: PR URL, files changed, test results, anything you
     could not do.
 

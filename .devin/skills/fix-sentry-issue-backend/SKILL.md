@@ -2,7 +2,7 @@
 name: fix-sentry-issue-backend
 description: Pull unresolved production errors from the Sentry
   bible-research-api project, reproduce and fix them on a
-  branch cut from main, open a draft PR, and mark the Sentry
+  branch cut from main, open a PR, and mark the Sentry
   issue resolved only after the PR merges. Invoke when the
   user asks to fix Sentry issues / triage the Sentry queue in
   bible_research.
@@ -89,15 +89,20 @@ cross-repo check below.
   format `Type: Capitalized message`; update
   `DEVELOPER_GUIDE.md` if behavior changed.
 
-## 4. Draft PR
+## 4. Open the PR
 
-- Push `-u origin`, draft PR `--base main` per
-  `.devin/skills/create-pr/` (body via `--body-file`).
+- Push `-u origin`, open a PR (ready for review, never a
+  draft) `--base main` per `.devin/skills/create-pr/` (body
+  via `--body-file`).
 - Body must link the Sentry issue URL
   (`https://bible-research.sentry.io/issues/<id>/`), quote the
   top stack frame and request path, and include a verification
   section (curl command or test that reproduces the error).
-- `gh pr checks <N> --watch`; fix until green; `gh pr ready`.
+- `gh pr checks <N> --watch`; fix until green. Then run the
+  reviewer loop: spawn a fresh reviewer subagent on the diff,
+  fix useful findings, push, repeat until a round finds
+  nothing meaningful. Remove the worktree once the loop is
+  clean and checks are green.
 - `export PATH="/opt/homebrew/bin:$PATH"` on every exec call —
   gh/gcloud are not on the default PATH.
 

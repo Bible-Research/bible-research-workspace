@@ -3,7 +3,7 @@ name: fix-sentry-issue-frontend
 description: Pull unresolved production errors and developer
   "Report a problem" reports from the Sentry reactive-bible-web
   project, reproduce and fix them on a branch cut from main,
-  open a draft PR, and mark the Sentry issue resolved only
+  open a PR, and mark the Sentry issue resolved only
   after the PR merges. Invoke when the user asks to fix
   Sentry issues / triage the Sentry queue in reactive-bible.
 ---
@@ -117,18 +117,23 @@ ask the user.
   `export PATH="/opt/homebrew/bin:$PATH"` on every exec call —
   node/npm/gh are not on the default PATH.
 
-## 5. Draft PR
+## 5. Open the PR
 
 - Stage only files you edited (never `git add -A`). Commit
   format `Type: Capitalized message`.
-- Push `-u origin`, then draft PR `--base main` per
-  `.devin/skills/create-pr/` (body via `--body-file`).
+- Push `-u origin`, then open a PR (ready for review, never
+  a draft) `--base main` per `.devin/skills/create-pr/`
+  (body via `--body-file`).
 - Body must: link the Sentry issue URL
   (`https://bible-research.sentry.io/issues/<id>/` — EU orgs
   also accept de.sentry.io URLs), quote the top stack frame
   (or the report text for user reports), and include the
   UI-verification section required by global rules.
-- `gh pr checks <N> --watch`; fix until green; `gh pr ready`.
+- `gh pr checks <N> --watch`; fix until green. Then run the
+  reviewer loop: spawn a fresh reviewer subagent on the diff,
+  fix useful findings, push, repeat until a round finds
+  nothing meaningful. Remove the worktree once the loop is
+  clean and checks are green.
 
 ## 6. Resolve — only after merge
 

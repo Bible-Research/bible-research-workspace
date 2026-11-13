@@ -172,10 +172,17 @@ Universal rules — follow exactly:
   `git -C <repo> worktree add worktrees/<slug>
   -b <type>/<slug> origin/main` and do all work — commits,
   push, PR — inside it; follow-up requests get a FRESH
-  worktree, never a reused one. Once the PR's checks are
-  green and no work remains, clean up IMMEDIATELY — don't
-  wait for the merge (the PR lives on the remote branch;
-  removing the local worktree/branch does not touch it, and
+  worktree, never a reused one. Finishing a task means a
+  green, reviewed PR — never ask the user whether to open
+  one. After pushing: open the PR ready for review (NEVER a
+  draft) per `.devin/skills/create-pr/`, then run a review
+  loop — spawn a FRESH reviewer subagent on the diff, fix
+  everything useful it reports, push, and repeat with a new
+  reviewer until a round finds nothing meaningful. Once the
+  loop is clean and the PR's checks are green, clean up
+  IMMEDIATELY — don't wait for the merge (the PR lives on
+  the remote branch; removing the local worktree/branch does
+  not touch it, and
   the remote branch is deleted at merge time). From the main
   checkout: `git -C <repo> worktree remove
   worktrees/<slug>` + `git -C <repo> branch -D

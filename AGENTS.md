@@ -184,7 +184,7 @@ Universal rules — follow exactly:
   the remote branch; removing the local worktree/branch does
   not touch it, and the remote branch is deleted at merge
   time). From the main
-  checkout: `git -C <repo> worktree remove
+  checkout: `git -C <repo> worktree remove --force
   worktrees/<slug>` + `git -C <repo> branch -D
   <type>/<slug>` (`-D`, not `-d` — squash-merges leave the
   branch "unmerged"); abandoned/rejected work gets the same

@@ -11,7 +11,7 @@ description: Pick an open GitHub issue labeled "good first issue" in
 # Fix a "Good First Issue" in bible_research
 
 The target repo is `bible_research/` (the Django REST API repo of
-this workspace). Run all `git`/`gh` commands from `bible_research/`.
+this workspace). Run all `git`/`gh` commands from the workspace root.
 The GitHub repo is `Bible-Research/bible_research` (remote
 `origin`).
 

@@ -12,7 +12,7 @@ description: Pick an open GitHub issue labeled "good first issue" in
 The target repo is `reactive-bible/` (the frontend repo of this
 workspace) — but see step 2: the root cause may live in the
 `bible_research` backend, or need changes in both. Run all
-`git`/`gh` commands from the repo you end up working in. The
+`git`/`gh` commands from the workspace root. The
 GitHub repo is `Bible-Research/reactive-bible` (remote `origin`).
 
 ## 1. Pick an issue

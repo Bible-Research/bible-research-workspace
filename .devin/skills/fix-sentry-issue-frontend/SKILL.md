@@ -137,7 +137,7 @@ needs its own `npm install`.
   reviewer loop: spawn a fresh reviewer subagent on the diff,
   fix useful findings, push, repeat until a round finds
   nothing meaningful. Remove the worktree once the loop is
-  clean and checks are green.
+  clean and checks are green (per AGENTS.md).
 
 ## 6. Resolve — only after merge
 

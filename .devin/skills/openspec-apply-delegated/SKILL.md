@@ -1,8 +1,9 @@
 ---
 name: openspec-apply-delegated
 description: >
-  Implement an OpenSpec change hands-off via subagents — an
-  implementer agent cuts a feature branch, works the task list,
+  Implement an OpenSpec change hands-off via subagents — the
+  orchestrator creates the worktrees, an implementer agent
+  works the task list,
   and opens a PR ready for review; once checks are green a
   fresh reviewer agent reports severity-tagged findings and
   fixer agents iterate until clean. Use when asked to implement an OpenSpec
@@ -136,7 +137,7 @@ stays small and survives `openspec update`.
   work, not as a defect to review.
 - Once the loop is clean AND the PR's checks are green,
   remove the worktree(s) immediately (`git -C <repo>
-  worktree remove worktrees/<change-name>` + `git -C <repo>
+  worktree remove --force worktrees/<change-name>` + `git -C <repo>
   branch -D feat/<change-name>`) — don't wait for merge.
 - Final report: PR URL, branch, tasks done/total, review
   rounds, unresolved findings, check status, and whether the

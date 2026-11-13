@@ -97,7 +97,7 @@ own `npm install`.
       npm test -- --run
 
 - If the change alters app behavior, update
-  `reactive-bible/DEVELOPER_GUIDE.md` (workspace rule 6).
+  `reactive-bible/DEVELOPER_GUIDE.md` (workspace rule 10).
 
 ## 5. Commit, push, and open a PR
 

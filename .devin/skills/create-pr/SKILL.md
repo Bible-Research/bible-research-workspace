@@ -12,9 +12,10 @@ description: >
 
 1. Prereqs: on a feature branch (never `main` — if commits
    landed on `main`, recover in a worktree: `git branch
-   <type>/<slug>`, `git reset --hard origin/main`, then
-   `git -C <repo> worktree add worktrees/<slug>
-   <type>/<slug>`). `gh` installed
+   <type>/<slug>`, verify `git status` shows only your own
+   changes (stash anything else), `git fetch origin`,
+   `git reset --hard origin/main`, then `git -C <repo>
+   worktree add worktrees/<slug> <type>/<slug>`). `gh` installed
    and authed; if missing, tell the user
    `brew install gh && gh auth login`. Workspace PRs target
    `Bible-Research/bible-research-workspace` (`origin`); app

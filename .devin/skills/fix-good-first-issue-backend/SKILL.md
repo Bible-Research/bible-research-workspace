@@ -110,7 +110,7 @@ own venv plus a `config.yaml` symlink to the main checkout's.
   `bible/services/dbt/dbt_integration_test.py` — it hits the live
   DBT API and needs a real `DBT_KEY`.
 - If the change alters API behavior, update
-  `bible_research/DEVELOPER_GUIDE.md` (workspace rule 6).
+  `bible_research/DEVELOPER_GUIDE.md` (workspace rule 10).
 
 ## 5. Commit, push, and open a PR
 

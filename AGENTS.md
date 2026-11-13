@@ -166,18 +166,25 @@ Universal rules — follow exactly:
   services running constantly) — flag those to the user
   instead of merging.
 - **Worktrees are mandatory for all implementation work** —
-  never edit/commit in a subrepo's main checkout: it may hold
+  never edit/commit in any repo's main checkout: it may hold
   the user's uncommitted work or another agent's session. For
   every task: `git -C <repo> fetch origin`, then
   `git -C <repo> worktree add worktrees/<slug>
   -b <type>/<slug> origin/main` and do all work — commits,
   push, PR — inside it; follow-up requests get a FRESH
-  worktree, never a reused one. Once the PR's checks are
-  green and no work remains, clean up IMMEDIATELY — don't
-  wait for the merge (the PR lives on the remote branch;
-  removing the local worktree/branch does not touch it, and
-  the remote branch is deleted at merge time). From the main
-  checkout: `git -C <repo> worktree remove
+  worktree, never a reused one. Finishing a task means a
+  green, reviewed PR — never ask the user whether to open
+  one. After pushing: open the PR ready for review (NEVER a
+  draft) per `.devin/skills/create-pr/`, then run a review
+  loop — spawn a FRESH reviewer subagent on the diff, fix
+  everything useful it reports, push, and repeat with a new
+  reviewer until a round finds nothing meaningful. Once the
+  loop is clean and the PR's checks are green, clean up
+  IMMEDIATELY — don't wait for the merge (the PR lives on
+  the remote branch; removing the local worktree/branch does
+  not touch it, and the remote branch is deleted at merge
+  time). From the main
+  checkout: `git -C <repo> worktree remove --force
   worktrees/<slug>` + `git -C <repo> branch -D
   <type>/<slug>` (`-D`, not `-d` — squash-merges leave the
   branch "unmerged"); abandoned/rejected work gets the same
@@ -190,7 +197,7 @@ Universal rules — follow exactly:
   `.eslintrc.cjs` has `root: true` on main (merged via #215)
   so `npm run lint` no longer cascades into the parent
   checkout's config. Backend agents: each worktree needs its
-  own venv (`python3 -m venv .venv`) and a `config.yaml`
+  own venv (`python3 -m venv venv`) and a `config.yaml`
   symlink to the main checkout's (gitignored — worktrees
   don't get one); reactive-bible worktrees need their own
   `npm install`.
@@ -285,7 +292,7 @@ live at the system level — never run `openspec init` inside
 - **Archive timing**: archive the change in the
   implementing PR when feasible — specs, code and history
   land atomically. Otherwise archive immediately after the
-  merge in a small follow-up commit on `main`. Never leave
+  merge in a small follow-up PR. Never leave
   a merged change unarchived: unsynced deltas leave
   `specs/` stale.
 - **Update specs in the same PR as the code.** Any change

@@ -2,7 +2,7 @@
 name: fix-sentry-issue-backend
 description: Pull unresolved production errors from the Sentry
   bible-research-api project, reproduce and fix them on a
-  branch cut from main, open a draft PR, and mark the Sentry
+  branch cut from main, open a PR, and mark the Sentry
   issue resolved only after the PR merges. Invoke when the
   user asks to fix Sentry issues / triage the Sentry queue in
   bible_research.
@@ -63,11 +63,16 @@ cross-repo check below.
   caught server bug vs untagged unhandled 500), request URL/
   view, release (`GAE_VERSION`), breadcrumbs.
 
-## 3. Reproduce and fix
+## 3. Reproduce and fix — in a worktree
 
-    git -C bible_research switch main
-    git -C bible_research pull --ff-only
-    git -C bible_research switch -c fix/sentry-<issue_short_id>
+    git -C bible_research fetch origin
+    git -C bible_research worktree add worktrees/sentry-<id> \
+      -b fix/sentry-<issue_short_id> origin/main
+
+Do all work inside `bible_research/worktrees/sentry-<id>` —
+never branch in the subrepo's main checkout (AGENTS.md). It
+needs its own venv plus a `config.yaml` symlink to the main
+checkout's.
 
 - Read `bible_research/AGENTS.md` FIRST; 79-char lines
   everywhere.
@@ -89,15 +94,20 @@ cross-repo check below.
   format `Type: Capitalized message`; update
   `DEVELOPER_GUIDE.md` if behavior changed.
 
-## 4. Draft PR
+## 4. Open the PR
 
-- Push `-u origin`, draft PR `--base main` per
-  `.devin/skills/create-pr/` (body via `--body-file`).
+- Push `-u origin`, open a PR (ready for review, never a
+  draft) `--base main` per `.devin/skills/create-pr/` (body
+  via `--body-file`).
 - Body must link the Sentry issue URL
   (`https://bible-research.sentry.io/issues/<id>/`), quote the
   top stack frame and request path, and include a verification
   section (curl command or test that reproduces the error).
-- `gh pr checks <N> --watch`; fix until green; `gh pr ready`.
+- `gh pr checks <N> --watch`; fix until green. Then run the
+  reviewer loop: spawn a fresh reviewer subagent on the diff,
+  fix useful findings, push, repeat until a round finds
+  nothing meaningful. Remove the worktree once the loop is
+  clean and checks are green (per AGENTS.md).
 - `export PATH="/opt/homebrew/bin:$PATH"` on every exec call —
   gh/gcloud are not on the default PATH.
 

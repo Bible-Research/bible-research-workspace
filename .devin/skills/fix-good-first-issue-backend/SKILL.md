@@ -2,8 +2,8 @@
 name: fix-good-first-issue-backend
 description: Pick an open GitHub issue labeled "good first issue" in
   Bible-Research/bible_research, fix it on a new branch cut from
-  main, open a draft PR, wait for checks, fix any
-  failures, and mark the PR ready for review. Invoke when the user
+  main, open a PR, wait for checks, fix any
+  failures, and run a reviewer loop until clean. Invoke when the user
   asks to fix a good-first-issue / pick up an issue from the
   bible_research backend repo.
 ---
@@ -11,7 +11,7 @@ description: Pick an open GitHub issue labeled "good first issue" in
 # Fix a "Good First Issue" in bible_research
 
 The target repo is `bible_research/` (the Django REST API repo of
-this workspace). Run all `git`/`gh` commands from `bible_research/`.
+this workspace). Run all `git`/`gh` commands from the workspace root.
 The GitHub repo is `Bible-Research/bible_research` (remote
 `origin`).
 
@@ -74,16 +74,15 @@ Outcomes:
 
 If unsure, state your reasoning and ask the user before proceeding.
 
-## 3. Branch from `main`
+## 3. Branch from `main` — in a worktree
 
-Switch to `main`, update it, and create the fix branch from it:
+    git -C bible_research fetch origin
+    git -C bible_research worktree add worktrees/issue-<N> \
+      -b fix/issue-<N>-<short-slug> origin/main
 
-    git -C bible_research switch main
-    git -C bible_research pull --ff-only
-    git -C bible_research switch -c fix/issue-<N>-<short-slug>
-
-If the working tree has uncommitted changes that block the switch,
-stop and ask the user before proceeding.
+Do all work inside `bible_research/worktrees/issue-<N>` — never
+branch in the subrepo's main checkout (AGENTS.md). It needs its
+own venv plus a `config.yaml` symlink to the main checkout's.
 
 ## 4. Fix the issue
 
@@ -111,9 +110,9 @@ stop and ask the user before proceeding.
   `bible/services/dbt/dbt_integration_test.py` — it hits the live
   DBT API and needs a real `DBT_KEY`.
 - If the change alters API behavior, update
-  `bible_research/DEVELOPER_GUIDE.md` (workspace rule 6).
+  `bible_research/DEVELOPER_GUIDE.md` (workspace rule 10).
 
-## 5. Commit, push, and open a draft PR
+## 5. Commit, push, and open a PR
 
 - Stage only files you edited — never `git add -A` / `git add .`.
   Never commit plan/scratch markdown files.
@@ -123,11 +122,12 @@ stop and ask the user before proceeding.
 
       git push -u origin fix/issue-<N>-<short-slug>
 
-- Create the PR as a DRAFT with `--base main`. Follow
-  `.devin/skills/create-pr/` (workspace root): write the body
-  to a temp file and use `--body-file` (never inline `--body`):
+- Create the PR ready for review (never a draft) with
+  `--base main`. Follow `.devin/skills/create-pr/` (workspace
+  root): write the body to a temp file and use `--body-file`
+  (never inline `--body`):
 
-      gh pr create --draft \
+      gh pr create \
         --title "Type: Capitalized message" \
         --base main --head fix/issue-<N>-<short-slug> \
         --body-file pr-body.md
@@ -143,13 +143,18 @@ stop and ask the user before proceeding.
 - If any check fails, get details
   (`gh pr checks <PR-number>` for links, `gh run view --log-failed`
   for logs), fix the code, commit, push, and watch again.
-- Repeat until every check passes. Do not mark ready while checks
-  are pending or failing. (If the repo reports no checks at all,
+- Repeat until every check passes — the worktree stays up until
+  they do. (If the repo reports no checks at all,
   note that and continue.)
 
-## 7. Mark ready for review and report
+## 7. Reviewer loop, then report
 
-    gh pr ready <PR-number>
+Spawn a FRESH reviewer subagent on the PR diff
+(`gh pr diff <PR-number>`). Fix everything useful it reports,
+push, then spawn another fresh reviewer — repeat until a
+round finds nothing meaningful. Keep the worktree until the
+loop is clean AND checks are green, then remove it per
+AGENTS.md.
 
-Then report to the user: the issue number/title fixed, the PR URL,
-and the final check status.
+Then report to the user: the issue number/title fixed, the PR
+URL, and the final check status.

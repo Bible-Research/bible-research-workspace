@@ -1,11 +1,12 @@
 ---
 name: openspec-apply-delegated
 description: >
-  Implement an OpenSpec change hands-off via subagents — an
-  implementer agent cuts a feature branch, works the task list,
-  and opens a draft PR; once checks are green a fresh reviewer
-  agent reports severity-tagged findings and fixer agents
-  iterate until clean. Use when asked to implement an OpenSpec
+  Implement an OpenSpec change hands-off via subagents — the
+  orchestrator creates the worktrees, an implementer agent
+  works the task list,
+  and opens a PR ready for review; once checks are green a
+  fresh reviewer agent reports severity-tagged findings and
+  fixer agents iterate until clean. Use when asked to implement an OpenSpec
   change end-to-end without driving the task loop interactively.
 ---
 
@@ -37,8 +38,14 @@ stays small and survives `openspec update`.
      through to every openspec command here and inside the
      subagent prompt.
 
-3. Branch: `feat/<change-name>` unless the user says otherwise.
-   Never `main`.
+3. Branch `feat/<change-name>` unless the user says otherwise.
+   Never `main` — and never a repo's main checkout: the
+   implementer works in a worktree per touched repo
+   (`git -C <repo> worktree add worktrees/<change-name>
+   -b feat/<change-name> origin/main`, AGENTS.md). That
+   includes a worktree at the workspace ROOT repo — the
+   change's tasks.md checkmarks and the archive commit
+   land there, not in the app subrepos.
 
 ## Phase 2 — implementer agent
 
@@ -59,22 +66,23 @@ stays small and survives `openspec update`.
      and `openspec validate --all --strict` must pass before
      pushing
    - PR conventions: push the branch, body via temp file +
-     `gh pr create --body-file`, DRAFT PR, mandatory UI
-     verification section (follow `.devin/skills/create-pr/`
-     when that skill exists in the repo).
+     `gh pr create --body-file`, ready-for-review PR (never a
+     draft), mandatory UI verification section (follow
+     `.devin/skills/create-pr/` when that skill exists in the
+     repo).
    - archive timing: when EVERY tasks.md item is `- [x]`,
-     run `openspec archive <name>` on the feature branch
-     BEFORE pushing / opening the PR (check
+     run `openspec archive <name>` in the ROOT-repo worktree
+     BEFORE pushing / opening PRs (check
      `openspec archive --help` first — it syncs delta specs
      into `openspec/specs/` and moves the change dir to
      `openspec/changes/archive/`); then `openspec validate
-     --all --strict` must pass. The archive lands in the SAME
-     commits pushed for the PR — code + synced specs +
-     history together. A fully-implemented change must NOT
-     reach `gh pr ready` unarchived; a legitimately
-     unfinished task stays `- [ ]`, the change stays
-     unarchived, and the implementer reports that
-     explicitly.
+     --all --strict` must pass. `openspec/` is tracked by the
+     root repo, so the archive lands in a root-repo PR on
+     `feat/<change-name>` opened alongside the subrepo
+     PR(s). A fully-implemented change must NOT reach PR
+     completion unarchived; a legitimately unfinished task
+     stays `- [ ]`, the change stays unarchived, and the
+     implementer reports that explicitly.
    - report back: branch name, PR URL, tasks completed, any
      tasks it could not finish and why
 5. If the implementer reports a blocker (unclear task, design
@@ -93,17 +101,23 @@ stays small and survives `openspec update`.
    has never seen the implementation. Prompt it with:
    `gh pr diff <n>`, the change's contextFiles (proposal,
    specs, design, tasks paths), and the repo rules. It also
-   verifies the archive is part of the PR: delta content
-   synced into `openspec/specs/`, the change dir moved under
-   `openspec/changes/archive/`, and `openspec validate
-   --all --strict` passing — a fully-implemented change with
-   no archive in the PR is a `[major]` finding, while
+   verifies the archive is part of the root-repo PR: delta
+   content synced into `openspec/specs/`, the change dir
+   moved under `openspec/changes/archive/`, and `openspec
+   validate --all --strict` passing — a fully-implemented
+   change with no archive PR is a `[major]` finding, while
    unchecked tasks explain an absent archive. It returns
    findings tagged `[blocker]`, `[major]`, `[minor]`, `[nit]`,
    or the exact string `NO ISSUES`.
 8. On `[blocker]` or `[major]` findings, launch a fixer
    subagent (`subagent_general`) on the SAME branch to commit
-   and push fixes. Then start a new round with a NEW reviewer.
+   and push fixes. A branch can live in only one worktree —
+   remove whichever currently holds it (`git -C <repo>
+   worktree list` to find it; `git -C <repo> worktree
+   remove --force worktrees/<name>`), then the fixer
+   attaches a fresh one (`git -C <repo> worktree add
+   worktrees/fix-<change-name> feat/<change-name>` — no
+   `-b`). Then start a new round with a NEW reviewer.
    Repeat until `NO ISSUES` (or only `[minor]`/`[nit]`) — max
    3 rounds, then stop and report what remains.
 9. Never let the implementer or a fixer review its own work —
@@ -116,10 +130,17 @@ stays small and survives `openspec update`.
 - Background subagents cannot gain permissions — if one stalls
   on a denied call, resume it in the foreground
   (`run_subagent resume=<agent_id>`).
-- The PR stays DRAFT until a review round returns clean.
+- The PR is never a draft — a review round returning clean
+  means it's done.
 - Tasks that cannot be finished stay unchecked (`- [ ]`) — the
   fixer and reviewer must treat an unchecked task as incomplete
   work, not as a defect to review.
+- Once the loop is clean AND the PR's checks are green,
+  remove every worktree the run created immediately
+  (`git -C <repo> worktree remove --force
+  worktrees/<change-name>` and any `worktrees/fix-<name>`,
+  then `git -C <repo> branch -D feat/<change-name>`) —
+  don't wait for merge.
 - Final report: PR URL, branch, tasks done/total, review
   rounds, unresolved findings, check status, and whether the
   archive was included in the PR or deferred (with the

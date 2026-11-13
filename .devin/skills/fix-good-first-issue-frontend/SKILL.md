@@ -2,8 +2,8 @@
 name: fix-good-first-issue-frontend
 description: Pick an open GitHub issue labeled "good first issue" in
   Bible-Research/reactive-bible, fix it on a new branch cut from
-  main, open a draft PR, wait for checks, fix any failures,
-  and mark the PR ready for review. Invoke when the user asks to fix a
+  main, open a PR, wait for checks, fix any failures,
+  and run a reviewer loop until clean. Invoke when the user asks to fix a
   good-first-issue / pick up an issue from the reactive-bible repo.
 ---
 
@@ -12,7 +12,7 @@ description: Pick an open GitHub issue labeled "good first issue" in
 The target repo is `reactive-bible/` (the frontend repo of this
 workspace) — but see step 2: the root cause may live in the
 `bible_research` backend, or need changes in both. Run all
-`git`/`gh` commands from the repo you end up working in. The
+`git`/`gh` commands from the workspace root. The
 GitHub repo is `Bible-Research/reactive-bible` (remote `origin`).
 
 ## 1. Pick an issue
@@ -75,16 +75,15 @@ Outcomes:
 
 If unsure, state your reasoning and ask the user before proceeding.
 
-## 3. Branch from `main`
+## 3. Branch from `main` — in a worktree
 
-Switch to `main`, update it, and create the fix branch from it:
+    git -C reactive-bible fetch origin
+    git -C reactive-bible worktree add worktrees/issue-<N> \
+      -b fix/issue-<N>-<short-slug> origin/main
 
-    git -C reactive-bible switch main
-    git -C reactive-bible pull --ff-only
-    git -C reactive-bible switch -c fix/issue-<N>-<short-slug>
-
-If the working tree has uncommitted changes that block the switch,
-stop and ask the user before proceeding.
+Do all work inside `reactive-bible/worktrees/issue-<N>` — never
+branch in the subrepo's main checkout (AGENTS.md). It needs its
+own `npm install`.
 
 ## 4. Fix the issue
 
@@ -98,9 +97,9 @@ stop and ask the user before proceeding.
       npm test -- --run
 
 - If the change alters app behavior, update
-  `reactive-bible/DEVELOPER_GUIDE.md` (workspace rule 6).
+  `reactive-bible/DEVELOPER_GUIDE.md` (workspace rule 10).
 
-## 5. Commit, push, and open a draft PR
+## 5. Commit, push, and open a PR
 
 - Stage only files you edited — never `git add -A` / `git add .`.
   Never commit plan/scratch markdown files.
@@ -110,11 +109,12 @@ stop and ask the user before proceeding.
 
       git push -u origin fix/issue-<N>-<short-slug>
 
-- Create the PR as a DRAFT with `--base main`. Follow
-  `.devin/skills/create-pr/`: write the body to a temp file
-  and use `--body-file` (never inline `--body`):
+- Create the PR ready for review (never a draft) with
+  `--base main`. Follow `.devin/skills/create-pr/`: write
+  the body to a temp file and use `--body-file` (never
+  inline `--body`):
 
-      gh pr create --draft \
+      gh pr create \
         --title "Type: Capitalized message" \
         --base main --head fix/issue-<N>-<short-slug> \
         --body-file pr-body.md
@@ -130,13 +130,18 @@ stop and ask the user before proceeding.
 - If any check fails, get details
   (`gh pr checks <PR-number>` for links, `gh run view --log-failed`
   for logs), fix the code, commit, push, and watch again.
-- Repeat until every check passes. Do not mark ready while checks
-  are pending or failing. (If the repo reports no checks at all,
+- Repeat until every check passes — the worktree stays up until
+  they do. (If the repo reports no checks at all,
   note that and continue.)
 
-## 7. Mark ready for review and report
+## 7. Reviewer loop, then report
 
-    gh pr ready <PR-number>
+Spawn a FRESH reviewer subagent on the PR diff
+(`gh pr diff <PR-number>`). Fix everything useful it reports,
+push, then spawn another fresh reviewer — repeat until a
+round finds nothing meaningful. Keep the worktree until the
+loop is clean AND checks are green, then remove it per
+AGENTS.md.
 
-Then report to the user: the issue number/title fixed, the PR URL,
-and the final check status.
+Then report to the user: the issue number/title fixed, the PR
+URL, and the final check status.

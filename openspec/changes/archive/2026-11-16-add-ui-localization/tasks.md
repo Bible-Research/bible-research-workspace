@@ -18,7 +18,7 @@
 ## 2. Language state
 
 - [x] 2.1 frontend: add persisted `uiLanguage` (BCP-47) to
-  the store — `bible-storage` v6 -> v7 migration; verify
+  the store — `bible-storage` v8 -> v9 migration (planned as v6->v7; main drifted); verify
   migration test covers missing field -> `en` and existing
   fields preserved
 - [x] 2.2 frontend: detection — persisted choice >

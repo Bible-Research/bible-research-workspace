@@ -39,7 +39,8 @@ stays small and survives `openspec update`.
      subagent prompt.
 
 3. Branch `feat/<change-name>` unless the user says otherwise.
-   Never `main` — and never a repo's main checkout: the
+   Never `main` or `staging` — and never a repo's main
+   checkout: the
    implementer works in a worktree per touched repo
    (`git -C <repo> worktree add worktrees/<change-name>
    -b feat/<change-name> origin/main`, AGENTS.md). That

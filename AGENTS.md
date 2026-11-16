@@ -111,7 +111,8 @@ Universal rules — follow exactly:
    tools own them.
 2. **Commit format** `Type: Capitalized message` —
    `Feat:`/`Fix:`/`Docs:`/`Refactor:`/`Test:`/`Chore:`.
-3. **Commit on feature branches only, never `main`.**
+3. **Commit on feature branches only, never `main` or
+   `staging`.**
    Name branches `<type>/<slug>` with the commit types
    (`feat/`, `fix/`, `docs/`, `refactor/`, `test/`, `chore/`).
    Stage only files changed this session, by path — never
@@ -163,7 +164,7 @@ Universal rules — follow exactly:
   needed command); `gcloud app deploy` and other mutating
   `gcloud` calls; `terraform apply`; force-pushes — EXCEPT
   the post-release `staging` reset in `reactive-bible`
-  (`git push --force-with-lease origin
+  (`git fetch origin && git push --force-with-lease origin
   origin/main:refs/heads/staging` — `staging` only, never
   `main`); creating any preview/staging/ephemeral resources
   (see Deployments — the `staging` git branch itself is
@@ -202,13 +203,15 @@ Universal rules — follow exactly:
   one. After pushing: open the PR ready for review (NEVER a
   draft) per `.devin/skills/create-pr/` — `reactive-bible`
   PRs pass `--base staging` (staging-first workflow, see
-  Deployments), `bible_research` and the workspace repo
-  stay on `--base main` — then run a review
+  Deployments; promotion PRs use `--base main`), while
+  `bible_research` and the workspace repo stay on
+  `--base main` — then run a review
   loop — spawn a FRESH reviewer subagent on the diff, fix
   everything useful it reports, push, and repeat with a new
   reviewer until a round finds nothing meaningful. Once the
   loop is clean and the PR's checks are green, merge it if
-  it targets `staging` (autonomous), then clean up
+  it targets `staging` (`gh pr merge <N> --squash` —
+  autonomous), then clean up
   IMMEDIATELY — don't wait for a `main` merge (the PR
   lives on the remote branch; removing the local
   worktree/branch does not touch it, and the remote branch

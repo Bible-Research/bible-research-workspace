@@ -67,9 +67,10 @@ Outcomes:
 - Fix only here (most common) — continue to step 3.
 - Fix only in `bible_research` — work there instead, following
   `bible_research/AGENTS.md` conventions (pytest, no migrations)
-  and branching from ITS `main` branch; this skill's branch/PR
-  steps still apply, just in the other repo (push to
-  `Bible-Research/bible_research`).
+  and branching from ITS `main` branch; this skill's
+  branch/worktree steps still apply in the other repo (push to
+  `Bible-Research/bible_research`), but open the PR with
+  `--base main` — `bible_research` has no `staging` branch.
 - Fix in both — do each repo's part on its own branch and open two
   cross-linked PRs (each body references the other PR and issue).
 

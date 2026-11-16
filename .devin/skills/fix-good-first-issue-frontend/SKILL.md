@@ -110,13 +110,14 @@ own `npm install`.
       git push -u origin fix/issue-<N>-<short-slug>
 
 - Create the PR ready for review (never a draft) with
-  `--base main`. Follow `.devin/skills/create-pr/`: write
+  `--base staging` (staging-first workflow — AGENTS.md).
+  Follow `.devin/skills/create-pr/`: write
   the body to a temp file and use `--body-file` (never
   inline `--body`):
 
       gh pr create \
         --title "Type: Capitalized message" \
-        --base main --head fix/issue-<N>-<short-slug> \
+        --base staging --head fix/issue-<N>-<short-slug> \
         --body-file pr-body.md
       rm pr-body.md
 

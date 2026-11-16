@@ -64,7 +64,9 @@ background so they run in parallel. Each prompt must include:
        `Type: Capitalized msg`.
        Push: git push -u origin feat/<slug>
     6. Open a PR (ready for review — never a draft) with
-       --base main following .devin/skills/create-pr/ at the workspace root —
+       --base staging for reactive-bible, --base main for
+       bible_research, following .devin/skills/create-pr/ at
+       the workspace root —
        write the body to pr-body.md, use --body-file, rm it
        after. Body must include a UI-verification section and
        reference the other repo's PR if the plan has both.

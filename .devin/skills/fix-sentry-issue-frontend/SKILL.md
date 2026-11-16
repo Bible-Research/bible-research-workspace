@@ -126,7 +126,8 @@ needs its own `npm install`.
 - Stage only files you edited (never `git add -A`). Commit
   format `Type: Capitalized message`.
 - Push `-u origin`, then open a PR (ready for review, never
-  a draft) `--base main` per `.devin/skills/create-pr/`
+  a draft) `--base staging` (staging-first workflow —
+  `reactive-bible/AGENTS.md`) per `.devin/skills/create-pr/`
   (body via `--body-file`).
 - Body must: link the Sentry issue URL
   (`https://bible-research.sentry.io/issues/<id>/` — EU orgs

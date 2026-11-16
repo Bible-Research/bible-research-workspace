@@ -70,6 +70,20 @@ fileset model, auth quirks, caching, error contracts).
   don't apply to it. `bible-research.vercel.app` and
   `bibleresearchapi.vercel.app` are likewise stale redirects
   (the latter 302s to `/api/v1/docs/`).
+- **Frontend staging branch** (`reactive-bible` only):
+  `staging` is the integration branch — every push
+  auto-deploys a Vercel preview
+  (`bible-research-git-staging-<team>.vercel.app` — preview
+  builds self-configure `VITE_API_BASE_URL` from
+  `VERCEL_URL`, no dashboard setup needed). Flow: PRs
+  target `staging` and squash-merge on green; promotion to
+  `main` happens per feature branch via separate PRs —
+  never a `staging`→`main` merge — then `staging` is
+  reset to `main`. Invariant `main` ⊆ `staging` is
+  enforced by the `staging-first` required check on `main`
+  PRs. Full procedure: `reactive-bible/AGENTS.md`
+  "Git workflow — staging-first". The backend has no
+  staging branch.
 - **Vercel env vars bake in at build time.** `VITE_*` vars are
   compiled into the bundle; changing or adding them requires a
   redeploy to take effect, and they must be scoped to
@@ -147,8 +161,14 @@ Universal rules — follow exactly:
   `migrate`, `sqlmigrate` (even if a task seems to need them,
   e.g. tests failing on missing tables — tell the user the
   needed command); `gcloud app deploy` and other mutating
-  `gcloud` calls; `terraform apply`; creating any
-  preview/staging/ephemeral resources (see Deployments).
+  `gcloud` calls; `terraform apply`; force-pushes — EXCEPT
+  the post-release `staging` reset in `reactive-bible`
+  (`git push --force-with-lease origin
+  origin/main:refs/heads/staging` — `staging` only, never
+  `main`); creating any preview/staging/ephemeral resources
+  (see Deployments — the `staging` git branch itself is
+  the one exception: it deploys as a Vercel preview, not a
+  standing resource).
 - **Commits/PRs happen inside each subrepo** on feature
   branches — the root repo only tracks workspace config/docs.
 - `bible_research`'s local `config.yaml` points `default` at
@@ -158,13 +178,18 @@ Universal rules — follow exactly:
   ("Databases").
 - **Test login**: `Tester5` / `password123` — use it when
   asked to log in and run tests (UI or API).
-- **Merging PRs on user request**: `gh pr merge <N> --squash
-  --admin` is allowed even when a required review is unmet —
-  don't block on branch-protection review requirements. Hold
-  back only if the merge could introduce significant ongoing
-  costs (e.g. Terraform that scales up infra, code that keeps
-  services running constantly) — flag those to the user
-  instead of merging.
+- **Merging PRs**: merges into `reactive-bible`'s `staging`
+  branch are autonomous — merge once checks are green and
+  the reviewer loop is clean; don't wait for a user
+  instruction (see "Frontend staging" under Deployments).
+  Merges into `main` — any repo — still happen on user
+  request: `gh pr merge <N> --squash --admin` is allowed
+  even when a required review is unmet — don't block on
+  branch-protection review requirements. Hold back only if
+  the merge could introduce significant ongoing costs (e.g.
+  Terraform that scales up infra, code that keeps services
+  running constantly) — flag those to the user instead of
+  merging.
 - **Worktrees are mandatory for all implementation work** —
   never edit/commit in any repo's main checkout: it may hold
   the user's uncommitted work or another agent's session. For
@@ -175,15 +200,19 @@ Universal rules — follow exactly:
   worktree, never a reused one. Finishing a task means a
   green, reviewed PR — never ask the user whether to open
   one. After pushing: open the PR ready for review (NEVER a
-  draft) per `.devin/skills/create-pr/`, then run a review
+  draft) per `.devin/skills/create-pr/` — `reactive-bible`
+  PRs pass `--base staging` (staging-first workflow, see
+  Deployments), `bible_research` and the workspace repo
+  stay on `--base main` — then run a review
   loop — spawn a FRESH reviewer subagent on the diff, fix
   everything useful it reports, push, and repeat with a new
   reviewer until a round finds nothing meaningful. Once the
-  loop is clean and the PR's checks are green, clean up
-  IMMEDIATELY — don't wait for the merge (the PR lives on
-  the remote branch; removing the local worktree/branch does
-  not touch it, and the remote branch is deleted at merge
-  time). From the main
+  loop is clean and the PR's checks are green, merge it if
+  it targets `staging` (autonomous), then clean up
+  IMMEDIATELY — don't wait for a `main` merge (the PR
+  lives on the remote branch; removing the local
+  worktree/branch does not touch it, and the remote branch
+  is deleted at merge time). From the main
   checkout: `git -C <repo> worktree remove --force
   worktrees/<slug>` + `git -C <repo> branch -D
   <type>/<slug>` (`-D`, not `-d` — squash-merges leave the

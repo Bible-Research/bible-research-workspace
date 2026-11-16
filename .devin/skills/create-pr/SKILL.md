@@ -34,7 +34,11 @@ description: >
 5. Write the PR body to a temp file at the repo root
    (`pr-body.md`), then `gh pr create --title "Feat: …"
    --body-file pr-body.md`. NEVER pass the body inline via
-   `--body`. Delete the temp file afterwards.
+   `--body`. Delete the temp file afterwards. Base branch:
+   `--base staging` for `reactive-bible` (staging-first
+   workflow — see its AGENTS.md), `--base main` for
+   `bible_research` and this workspace repo, unless the
+   user instructs otherwise.
 6. Body template:
 
    ```markdown

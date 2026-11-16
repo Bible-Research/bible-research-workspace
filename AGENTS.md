@@ -42,7 +42,9 @@ fileset model, auth quirks, caching, error contracts).
 
 ## Deployments
 
-- **Backend: Google App Engine only, never Vercel.** Prod host:
+- **Prod backend: Google App Engine only, never Vercel** —
+  the Vercel-hosted staging deployment below is the one
+  exception. Prod host:
   `bible-research-489314.ey.r.appspot.com`. `gcloud app deploy`
   uploads the *local working directory* — always deploy from a
   clean worktree on `origin/main`, never from the user's
@@ -89,6 +91,17 @@ fileset model, auth quirks, caching, error contracts).
   PRs. Full procedure: `reactive-bible/AGENTS.md`
   "Git workflow — staging-first". The backend has no
   staging branch.
+- **Staging backend** (Vercel-hosted, serverless —
+  scales to zero; its domain is in the Vercel project
+  dashboard, team `industr-analysers-projects`): config
+  arrives via `DOTENV`, whose `DATABASE_URL` line must
+  point at the Aiven `stagingdb` database — never
+  `defaultdb` (the shared `env-file` secret carries prod's
+  URL, so the staging deploy needs its own DOTENV payload
+  or a real `DATABASE_URL` env var — env vars win).
+  `stagingdb` is seeded with the
+  prod schema and the `Tester5`/`Daniels` accounts. See
+  `bible_research/AGENTS.md` "Databases".
 - **Vercel env vars bake in at build time.** `VITE_*` vars are
   compiled into the bundle; changing or adding them requires a
   redeploy to take effect, and they must be scoped to
@@ -172,18 +185,22 @@ Universal rules — follow exactly:
   (`git fetch origin && git push --force-with-lease origin
   origin/main:refs/heads/staging` — `staging` only, never
   `main`); creating any preview/staging/ephemeral resources
-  (see Deployments — the `staging` git branch itself is
-  the one exception: it deploys as a Vercel preview, not a
-  standing resource).
+  (see Deployments — the exceptions are the `staging` git
+  branch, which deploys as a Vercel preview, and the
+  Vercel-hosted staging backend, which is serverless
+  scale-to-zero; neither is a standing paid resource).
 - **Commits/PRs happen inside each subrepo** on feature
   branches — the root repo only tracks workspace config/docs.
 - `bible_research`'s local `config.yaml` points `default` at
   the production Aiven Postgres via the read-only `ai_agent`
   user — use it for read-only investigation; pytest stays on
-  in-memory SQLite. Details in `bible_research/AGENTS.md`
-  ("Databases").
+  in-memory SQLite. A staging database `stagingdb` lives on
+  the same instance (`staging_rw` read/write owner,
+  `ai_agent` read-only). Details in
+  `bible_research/AGENTS.md` ("Databases").
 - **Test login**: `Tester5` / `password123` — use it when
-  asked to log in and run tests (UI or API).
+  asked to log in and run tests (UI or API). `Tester5` and
+  `Daniels` also exist on `stagingdb` with their prod data.
 - **Merging PRs**: merges into `reactive-bible`'s `staging`
   branch are autonomous — merge once checks are green and
   the reviewer loop is clean; don't wait for a user

@@ -27,7 +27,7 @@
   and add the pathname to the `overflow: "auto"` whitelist in
   `src/App.tsx`; verify a route test mounts it anonymously at
   `/getting-started` without redirect.
-- [ ] 2.3 frontend: Add an ungated "Getting started" item to
+- [x] 2.3 frontend: Add an ungated "Getting started" item to
   `MainMenu.tsx` above "Report a problem" using the icon +
   title + dimmed-subtitle row pattern and a `title` test hook;
   verify `MainMenu.test.tsx` shows it to anonymous users and that

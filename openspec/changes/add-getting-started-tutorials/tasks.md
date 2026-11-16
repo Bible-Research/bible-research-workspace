@@ -35,7 +35,7 @@
 
 ## 3. Docs and scoped verification
 
-- [ ] 3.1 frontend: Update `DEVELOPER_GUIDE.md` (routes table,
+- [x] 3.1 frontend: Update `DEVELOPER_GUIDE.md` (routes table,
   route-components list) and `README.md` (features bullet), and add
   `src/data/` to the Layout section of the repo `AGENTS.md`; verify
   the new route is documented.

@@ -316,7 +316,12 @@ live at the system level — never run `openspec init` inside
 - `reactive-bible/DEVELOPER_GUIDE.md` — architecture; predates
   auth, comments, mentions, Android.
 - `reactive-bible/docs/` — test documentation
-  (`TAG_REFRESH_TESTS.md`).
+  (`TAG_REFRESH_TESTS.md`) plus `docs/video-scripts/` —
+  tutorial voiceover scripts named
+  `getting-started.<locale>.md` (one per UI locale
+  `en`/`lv`/`ru`; keep all locales in parity when editing —
+  each maps 1:1 to a `youtubeIds` entry in
+  `src/data/gettingStartedVideos.ts`).
 - `docs/plans/` — frozen archive of historical implementation
   plans/investigations, incl. `docs/plans/rust-rewrite/`
   (multi-file). Each doc carries a status header: implemented /

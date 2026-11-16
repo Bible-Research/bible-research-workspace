@@ -17,7 +17,7 @@
 
 ## 2. Route and menu wiring
 
-- [ ] 2.1 frontend: Create `src/routes/GettingStartedRoute.tsx`
+- [x] 2.1 frontend: Create `src/routes/GettingStartedRoute.tsx`
   (default export) rendering the heading, intro text, and one card
   per catalogue entry that has a `youtubeId`, in order; verify
   `GettingStartedRoute.test.tsx` renders only id'd entries in

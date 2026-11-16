@@ -42,7 +42,9 @@ fileset model, auth quirks, caching, error contracts).
 
 ## Deployments
 
-- **Backend: Google App Engine only, never Vercel.** Prod host:
+- **Prod backend: Google App Engine only, never Vercel** —
+  the Vercel-hosted staging deployment below is the one
+  exception. Prod host:
   `bible-research-489314.ey.r.appspot.com`. `gcloud app deploy`
   uploads the *local working directory* — always deploy from a
   clean worktree on `origin/main`, never from the user's
@@ -89,12 +91,15 @@ fileset model, auth quirks, caching, error contracts).
   PRs. Full procedure: `reactive-bible/AGENTS.md`
   "Git workflow — staging-first". The backend has no
   staging branch.
-- **Staging backend** (Vercel-hosted, config via `DOTENV`):
-  points `DATABASE_URL` at the Aiven `stagingdb` database —
-  never `defaultdb` (the shared `env-file` secret carries
-  prod's URL; a staging deploy must override it). Seeded
-  with the prod schema and the `Tester5`/`Daniels`
-  accounts. See `bible_research/AGENTS.md` "Databases".
+- **Staging backend** (Vercel-hosted, serverless —
+  scales to zero; its domain is in the Vercel project
+  dashboard, team `industr-analysers-projects`): config
+  arrives via `DOTENV`, which must point `DATABASE_URL` at
+  the Aiven `stagingdb` database — never `defaultdb` (the
+  shared `env-file` secret carries prod's URL; a staging
+  deploy must override it). `stagingdb` is seeded with the
+  prod schema and the `Tester5`/`Daniels` accounts. See
+  `bible_research/AGENTS.md` "Databases".
 - **Vercel env vars bake in at build time.** `VITE_*` vars are
   compiled into the bundle; changing or adding them requires a
   redeploy to take effect, and they must be scoped to
@@ -178,9 +183,10 @@ Universal rules — follow exactly:
   (`git fetch origin && git push --force-with-lease origin
   origin/main:refs/heads/staging` — `staging` only, never
   `main`); creating any preview/staging/ephemeral resources
-  (see Deployments — the `staging` git branch itself is
-  the one exception: it deploys as a Vercel preview, not a
-  standing resource).
+  (see Deployments — the exceptions are the `staging` git
+  branch, which deploys as a Vercel preview, and the
+  Vercel-hosted staging backend, which is serverless
+  scale-to-zero; neither is a standing paid resource).
 - **Commits/PRs happen inside each subrepo** on feature
   branches — the root repo only tracks workspace config/docs.
 - `bible_research`'s local `config.yaml` points `default` at

@@ -67,9 +67,10 @@ Outcomes:
 - Fix only here (most common) — continue to step 3.
 - Fix only in `bible_research` — work there instead, following
   `bible_research/AGENTS.md` conventions (pytest, no migrations)
-  and branching from ITS `main` branch; this skill's branch/PR
-  steps still apply, just in the other repo (push to
-  `Bible-Research/bible_research`).
+  and branching from ITS `main` branch; this skill's
+  branch/worktree steps still apply in the other repo (push to
+  `Bible-Research/bible_research`), but open the PR with
+  `--base main` — `bible_research` has no `staging` branch.
 - Fix in both — do each repo's part on its own branch and open two
   cross-linked PRs (each body references the other PR and issue).
 
@@ -110,13 +111,14 @@ own `npm install`.
       git push -u origin fix/issue-<N>-<short-slug>
 
 - Create the PR ready for review (never a draft) with
-  `--base main`. Follow `.devin/skills/create-pr/`: write
+  `--base staging` (staging-first workflow — AGENTS.md).
+  Follow `.devin/skills/create-pr/`: write
   the body to a temp file and use `--body-file` (never
   inline `--body`):
 
       gh pr create \
         --title "Type: Capitalized message" \
-        --base main --head fix/issue-<N>-<short-slug> \
+        --base staging --head fix/issue-<N>-<short-slug> \
         --body-file pr-body.md
       rm pr-body.md
 

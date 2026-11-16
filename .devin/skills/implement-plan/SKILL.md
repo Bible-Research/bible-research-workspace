@@ -64,7 +64,9 @@ background so they run in parallel. Each prompt must include:
        `Type: Capitalized msg`.
        Push: git push -u origin feat/<slug>
     6. Open a PR (ready for review — never a draft) with
-       --base main following .devin/skills/create-pr/ at the workspace root —
+       --base staging for reactive-bible, --base main for
+       bible_research, following .devin/skills/create-pr/ at
+       the workspace root —
        write the body to pr-body.md, use --body-file, rm it
        after. Body must include a UI-verification section and
        reference the other repo's PR if the plan has both.
@@ -125,10 +127,12 @@ If any reviewer reported blocker/should-fix findings:
   stop and ask the user rather than improvising.
 
 Once a PR's review round is clean AND its checks are green,
-remove every worktree created for it immediately — `git -C
+merge it first if it targets `staging` (autonomous —
+`gh pr merge <N> --squash`), then remove every worktree
+created for it immediately — `git -C
 <repo> worktree remove --force worktrees/<slug>` (and any
 `worktrees/fix-<slug>`) + `git -C <repo> branch -D
-feat/<slug>` per AGENTS.md; don't wait for merge.
+feat/<slug>` per AGENTS.md; don't wait for a `main` merge.
 
 ## Final report
 

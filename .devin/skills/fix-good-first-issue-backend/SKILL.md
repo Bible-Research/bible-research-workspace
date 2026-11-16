@@ -67,8 +67,10 @@ Outcomes:
 - Fix only here (most common) — continue to step 3.
 - Fix only in `reactive-bible` — work there instead, following
   `reactive-bible/AGENTS.md` conventions and branching from ITS
-  `main` branch; this skill's branch/PR steps still apply, just in
-  the other repo (push to `Bible-Research/reactive-bible`).
+  `main` branch; this skill's branch/worktree steps still apply
+  in the other repo (push to `Bible-Research/reactive-bible`),
+  but open the PR with `--base staging` — staging-first
+  workflow — not `--base main`.
 - Fix in both — do each repo's part on its own branch and open two
   cross-linked PRs (each body references the other PR and issue).
 

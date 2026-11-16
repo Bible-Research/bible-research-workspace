@@ -52,7 +52,7 @@
   flag is off and `is_sword_fileset(fileset_id)`; verify
   tests assert the coded 403 for SWORD ids and normal
   behavior for a non-SWORD id with the flag off.
-- [ ] 2.4 backend: Note in the PR body that a human must run
+- [x] 2.4 backend: Note in the PR body that a human must run
   `python manage.py migrate` on prod before/alongside deploy
   (and `makemigrations --check` to confirm the hand-written
   migration matches the model). Verification = PR checklist

@@ -4,18 +4,13 @@
 
 ### Requirement: error_code to HTTP status mapping
 
-The backend SHALL map codes to statuses as follows:
-`rate_limited` → 429; `book_not_in_fileset` (fileset
-coverage miss on the passage endpoint — includes
-`PassageNotFoundError` and upstream 404s there) → 404;
-`not_found` (coverage miss on other endpoints) → 404;
-`search_disabled` (SWORD-fileset search rejected because
-the `sword_search` feature flag is off) → 403;
-`provider_error` → 502 for other provider failures;
-`internal_error` → 500 catch-all;
-`missing_parameter`/`invalid_parameter` (`bad_request`) →
-400. Routing ids SHALL be charset-validated at the view
-boundary.
+The backend SHALL map `rate_limited` → 429;
+`book_not_in_fileset`/`not_found` → 404;
+`search_disabled` (SWORD-fileset search gated off by the
+`sword_search` feature flag) → 403; `provider_error` → 502;
+`internal_error` → 500; and `bad_request`
+(`missing_parameter`/`invalid_parameter`) → 400. Routing ids
+SHALL be charset-validated at the view boundary.
 
 #### Scenario: Rate-limited upstream yields 429
 

@@ -22,7 +22,7 @@
   per catalogue entry that has a `youtubeId`, in order; verify
   `GettingStartedRoute.test.tsx` renders only id'd entries in
   catalogue order.
-- [ ] 2.2 frontend: Register `/getting-started` as a lazy route via
+- [x] 2.2 frontend: Register `/getting-started` as a lazy route via
   `lazyWithReload` in `src/routes/index.tsx` (no `ProtectedRoute`)
   and add the pathname to the `overflow: "auto"` whitelist in
   `src/App.tsx`; verify a route test mounts it anonymously at

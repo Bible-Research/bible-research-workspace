@@ -89,6 +89,12 @@ fileset model, auth quirks, caching, error contracts).
   PRs. Full procedure: `reactive-bible/AGENTS.md`
   "Git workflow — staging-first". The backend has no
   staging branch.
+- **Staging backend** (Vercel-hosted, config via `DOTENV`):
+  points `DATABASE_URL` at the Aiven `stagingdb` database —
+  never `defaultdb` (the shared `env-file` secret carries
+  prod's URL; a staging deploy must override it). Seeded
+  with the prod schema and the `Tester5`/`Daniels`
+  accounts. See `bible_research/AGENTS.md` "Databases".
 - **Vercel env vars bake in at build time.** `VITE_*` vars are
   compiled into the bundle; changing or adding them requires a
   redeploy to take effect, and they must be scoped to
@@ -180,10 +186,13 @@ Universal rules — follow exactly:
 - `bible_research`'s local `config.yaml` points `default` at
   the production Aiven Postgres via the read-only `ai_agent`
   user — use it for read-only investigation; pytest stays on
-  in-memory SQLite. Details in `bible_research/AGENTS.md`
-  ("Databases").
+  in-memory SQLite. A staging database `stagingdb` lives on
+  the same instance (`staging_rw` read/write owner,
+  `ai_agent` read-only). Details in
+  `bible_research/AGENTS.md` ("Databases").
 - **Test login**: `Tester5` / `password123` — use it when
-  asked to log in and run tests (UI or API).
+  asked to log in and run tests (UI or API). `Tester5` and
+  `Daniels` also exist on `stagingdb` with their prod data.
 - **Merging PRs**: merges into `reactive-bible`'s `staging`
   branch are autonomous — merge once checks are green and
   the reviewer loop is clean; don't wait for a user

@@ -39,7 +39,7 @@
   route-components list) and `README.md` (features bullet), and add
   `src/data/` to the Layout section of the repo `AGENTS.md`; verify
   the new route is documented.
-- [ ] 3.2 frontend: Run scoped checks — `npx vitest run` on the new
+- [x] 3.2 frontend: Run scoped checks — `npx vitest run` on the new
   and touched test files, `npm run lint` (must stay 0 errors / 0
   warnings), `npm run build`, and the 79-char `awk` check on every
   file this change created or modified; verify all pass.

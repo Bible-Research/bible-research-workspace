@@ -69,7 +69,10 @@ Each request scans at most `SEARCH_SCAN_BUDGET_SECONDS`
 
 Cursor encoding: the chapter worklist index (position in
 `list_chapters` output after `books` filtering), serialized
-e.g. `base64("v1:<index>")` — opaque, stateless, deterministic
+e.g. `base64("v2:<ctx-hash>:<index>")` (implemented: bound
+to a hash of `fileset_id|books|query` so a replayed cursor
+under different params is rejected) — opaque, stateless,
+deterministic
 since the worklist is stable per fileset+books. An
 undecodable/out-of-range cursor → 400 `invalid_parameter`.
 The query+fileset must be resent each window (they're what

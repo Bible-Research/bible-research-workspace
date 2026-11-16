@@ -137,11 +137,13 @@ stays small and survives `openspec update`.
   fixer and reviewer must treat an unchecked task as incomplete
   work, not as a defect to review.
 - Once the loop is clean AND the PR's checks are green,
-  remove every worktree the run created immediately
+  merge it first if it targets `staging` (autonomous —
+  `gh pr merge <N> --squash`), then remove every worktree
+  the run created immediately
   (`git -C <repo> worktree remove --force
   worktrees/<change-name>` and any `worktrees/fix-<name>`,
   then `git -C <repo> branch -D feat/<change-name>`) —
-  don't wait for merge.
+  don't wait for a `main` merge.
 - Final report: PR URL, branch, tasks done/total, review
   rounds, unresolved findings, check status, and whether the
   archive was included in the PR or deferred (with the

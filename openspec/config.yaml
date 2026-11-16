@@ -17,7 +17,7 @@ context: |
     - Max line length is 79 chars in every file type.
     - Commit messages use "Type: Capitalized message"
       (Feat:/Fix:/Docs:/Refactor:/Test:/Chore:); never commit to
-      main; stage only files you changed.
+      main or staging; stage only files you changed.
     - NEVER run DB migrations (makemigrations, migrate,
       sqlmigrate). Tell the user the needed command instead.
 

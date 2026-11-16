@@ -29,6 +29,16 @@ headings.
 - **THEN** rendered book names change to Russian without
   reloading the page
 
+#### Scenario: Uncovered book keeps the translation's language
+
+- **WHEN** a partial-canon translation's structure omits a
+  book (e.g. `LAVLVR` lacks `EXO`) and a bundled catalog
+  exists for the translation's language
+- **THEN** the uncovered book renders the bundled catalog's
+  same-language name (`2. Mozus grāmata`), not the English
+  `Exodus` — the catalog doubles as the same-language
+  fallback for books the structure does not cover
+
 ### Requirement: English names remain the contract identity
 
 Book names used in API parameters (`passage=`), stored fields
@@ -50,7 +60,9 @@ previously loaded structure until the new one arrives, then
 swap names and coverage atomically in one render. Bundled
 `en`/`lv`/`ru` name catalogs SHALL cover the shipped locales
 when no cache entry exists; per-bible structure SHALL be cached
-in localStorage keyed on bible abbreviation.
+in localStorage keyed on bible abbreviation — except degraded
+(`degraded: true`) or empty-`books` anomaly bodies, which
+SHALL NOT be persisted and are retried on the next request.
 
 #### Scenario: Uncached non-shipped language
 

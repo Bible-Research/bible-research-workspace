@@ -102,6 +102,22 @@ non-2xx or degraded responses.
   cache TTL
 - **THEN** the second is answered without a new provider call
 
+### Requirement: Anomalous bodies are never cached
+
+Degraded bodies (`degraded: true`, e.g. a failed SWORD
+canonical-name overlay) and empty-`books` upstream anomalies
+SHALL NOT be persisted by any cache tier — no process-cache
+entry, no edge mark (`no-store` is sent instead), and no
+client localStorage write; they are retried on the next
+request.
+
+#### Scenario: Degraded body is retried, not cached
+
+- **WHEN** the endpoint serves a `degraded: true` body
+- **THEN** it carries `no-store`, no cache tier persists
+  it, and the next request re-resolves the structure
+  upstream
+
 ### Requirement: Provider failures follow the error contract
 
 Upstream failures SHALL surface through the existing

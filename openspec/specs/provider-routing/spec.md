@@ -50,9 +50,10 @@ filesets → local SWORD modules; (4) all other ids → DBT API v4.
 `provider_for` SHALL return an object exposing the uniform
 surface `get_chapter`, `get_passage`, `get_audio`,
 `get_timestamps`, `search`, `search_grouped`, `get_copyright`,
-and `translation_listing`, so callers never branch on provider
-type. `get_passage_body()` in the same module is the
-`/api/v1/bible/` fetch-and-shape path the view calls.
+`get_structure`, and `translation_listing`, so callers never
+branch on provider type. `get_passage_body()` in the same
+module is the `/api/v1/bible/` fetch-and-shape path the view
+calls.
 
 #### Scenario: View fetches a passage without provider branches
 

@@ -15,7 +15,8 @@ description: >
    `git branch
    <type>/<slug>`, stash any uncommitted work (`git stash -u`; pop it
    inside the new worktree if it was yours), `git fetch origin`,
-   `git reset --hard origin/main`, then `git -C <repo>
+   `git reset --hard origin/main` (or `origin/staging` if
+   they landed there), then `git -C <repo>
    worktree add worktrees/<slug> <type>/<slug>`). `gh` installed
    and authed; if missing, tell the user
    `brew install gh && gh auth login`. Workspace PRs target

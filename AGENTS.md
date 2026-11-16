@@ -215,7 +215,10 @@ Universal rules — follow exactly:
   IMMEDIATELY — don't wait for a `main` merge (the PR
   lives on the remote branch; removing the local
   worktree/branch does not touch it, and the remote branch
-  is deleted at merge time). From the main
+  is deleted at merge time — for `reactive-bible` it is
+  simply re-pushed from the merged staging PR's
+  `headRefOid` when its `main` promotion PR is opened; no
+  branch needs to stay checked out). From the main
   checkout: `git -C <repo> worktree remove --force
   worktrees/<slug>` + `git -C <repo> branch -D
   <type>/<slug>` (`-D`, not `-d` — squash-merges leave the

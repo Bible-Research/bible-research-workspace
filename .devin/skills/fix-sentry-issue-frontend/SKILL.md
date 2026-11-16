@@ -140,7 +140,7 @@ needs its own `npm install`.
   nothing meaningful. Remove the worktree once the loop is
   clean and checks are green (per AGENTS.md).
 
-## 6. Resolve — only after merge
+## 6. Resolve — only after the fix reaches `main`
 
 Bug issues:
 
@@ -150,8 +150,11 @@ Bug issues:
       "$BASE/issues/<id>/"
 
 (Frontend release = commit sha; resolution takes effect on the
-next deploy.) NEVER resolve before merge; NEVER `ignore` /
-`archive` an issue without asking the user.
+next deploy.) Under the staging-first workflow "merge" means
+the promotion merge into `main` — a `staging` merge alone
+only deploys the Vercel preview, not production. NEVER
+resolve before merge; NEVER `ignore` / `archive` an issue
+without asking the user.
 
 ## 7. Processed-report ledger
 

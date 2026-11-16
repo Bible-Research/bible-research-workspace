@@ -53,7 +53,7 @@ translation defaults (same pattern as `fileset_id` routing).
 
 Init order: persisted `uiLanguage` -> `navigator.language`
 prefix match (`lv-LV` -> `lv`) -> `en`. Persisted choice
-lives in `bible-storage` (v6 -> v7 migration adds
+lives in `bible-storage` (v8 -> v9 migration adds
 `uiLanguage`); detection runs only when the field is absent.
 
 ### Curated default-translation map

@@ -79,7 +79,12 @@ fileset model, auth quirks, caching, error contracts).
   target `staging` and squash-merge on green; promotion to
   `main` happens per feature branch via separate PRs —
   never a `staging`→`main` merge — then `staging` is
-  reset to `main`. Invariant `main` ⊆ `staging` is
+  reset to `main`. The repo's `Promote to main`
+  `workflow_dispatch` action automates the whole
+  promotion + reset (including conflict resolution from
+  staging's own integration state) — run it from the
+  Actions tab or `gh workflow run "Promote to main"`.
+  Invariant `main` ⊆ `staging` is
   enforced by the `staging-first` required check on `main`
   PRs. Full procedure: `reactive-bible/AGENTS.md`
   "Git workflow — staging-first". The backend has no

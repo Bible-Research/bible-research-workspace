@@ -7,7 +7,7 @@
   and `TUTORIAL_VIDEOS` seeded with the planned tutorial topics
   (`youtubeId: null` placeholders); verify a new unit test asserts
   unique ids and the `youtubeId` shape when non-null.
-- [ ] 1.2 frontend: Create `src/components/YouTubeEmbed.tsx` — a
+- [x] 1.2 frontend: Create `src/components/YouTubeEmbed.tsx` — a
   click-to-play facade (`AspectRatio` 16:9, `UnstyledButton`,
   `i.ytimg.com` thumbnail, play icon) that swaps in a
   `youtube-nocookie.com` iframe (`autoplay=1`, `allow`,

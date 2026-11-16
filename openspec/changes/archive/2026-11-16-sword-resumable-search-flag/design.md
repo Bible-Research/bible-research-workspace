@@ -74,11 +74,11 @@ to a hash of `fileset_id|books|query` so a replayed cursor
 under different params is rejected) — opaque, stateless,
 deterministic
 since the worklist is stable per fileset+books. An
-undecodable/out-of-range cursor → 400 `invalid_parameter`.
-The query+fileset must be resent each window (they're what
-the scan needs anyway); we deliberately do not bind the
-cursor to the query — a cursor from a different query just
-resumes at a position, harmless.
+undecodable, out-of-range, or context-mismatched cursor →
+400 `invalid_parameter`. The query+fileset must be resent
+each window (they're what the scan needs anyway). The ctx
+hash is a consistency tag, not a MAC — a client that forges
+a valid ctx can only truncate its own results.
 
 `search_grouped` signature grows `cursor=None`; the provider
 returns `{groups, meta: {total, truncated, next_cursor?,

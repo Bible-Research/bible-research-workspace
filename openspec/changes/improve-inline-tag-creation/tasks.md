@@ -81,13 +81,13 @@
   through `AddTagNoteModal`: Enter-create top-level,
   under… create, `Work/design` path create with ancestor
   reuse, Undo, Move under
-- [ ] 6.2 frontend: Update `DEVELOPER_GUIDE.md` (tag
+- [x] 6.2 frontend: Update `DEVELOPER_GUIDE.md` (tag
   creation UX section) and `AGENTS.md` if contracts moved;
   verify `awk 'length>79'` clean on all touched files
 
 ## 7. Verification
 
-- [ ] 7.1 `npm run lint` (0 errors, 0 warnings),
+- [x] 7.1 `npm run lint` (0 errors, 0 warnings),
   `npm run build` (tsc), `npm test -- --run`, and
   `openspec validate improve-inline-tag-creation --strict`
   all pass; tasks.md checkboxes current

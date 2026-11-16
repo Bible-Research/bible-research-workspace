@@ -94,10 +94,12 @@ fileset model, auth quirks, caching, error contracts).
 - **Staging backend** (Vercel-hosted, serverless —
   scales to zero; its domain is in the Vercel project
   dashboard, team `industr-analysers-projects`): config
-  arrives via `DOTENV`, which must point `DATABASE_URL` at
-  the Aiven `stagingdb` database — never `defaultdb` (the
-  shared `env-file` secret carries prod's URL; a staging
-  deploy must override it). `stagingdb` is seeded with the
+  arrives via `DOTENV`, whose `DATABASE_URL` line must
+  point at the Aiven `stagingdb` database — never
+  `defaultdb` (the shared `env-file` secret carries prod's
+  URL, so the staging deploy needs its own DOTENV payload
+  or a real `DATABASE_URL` env var — env vars win).
+  `stagingdb` is seeded with the
   prod schema and the `Tester5`/`Daniels` accounts. See
   `bible_research/AGENTS.md` "Databases".
 - **Vercel env vars bake in at build time.** `VITE_*` vars are

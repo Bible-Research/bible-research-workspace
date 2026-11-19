@@ -93,6 +93,10 @@ than proxying it upstream — and `useVerseTexts` does
 - Self-heal depends on `translations` being loaded; the
   subscriber must wait for a non-empty list before judging a
   product id unresolvable, or every cold start resets.
+- Orphaned audio selections degrade to silent no-audio
+  (`orderedAudioCandidates` → `[]`) — no notification
+  equivalent to the text self-heal; accepted, the audio
+  player simply shows nothing to play.
 
 ## Migration Plan
 

@@ -16,7 +16,9 @@ A stored id carrying the client-side product form
 option — exact, member, or drifted-prefix lookup — SHALL
 resolve as unresolvable and SHALL NOT be sent upstream
 verbatim. Non-product unknown ids SHALL keep passing through,
-since raw provider fileset ids are routable.
+since raw provider fileset ids are routable. The bundled-KJV
+fast paths (`ENGKJV` and `ENGKJV:*` → the offline bundle)
+SHALL keep resolving before this rule applies.
 
 #### Scenario: Orphaned product id does not 400
 
@@ -79,3 +81,9 @@ instead of surfacing a client-input error.
 
 - **WHEN** the pinned fileset is an unresolvable product id
 - **THEN** note-reference text resolves as if no pin were set
+
+#### Scenario: Unresolvable selection falls back to ESV
+
+- **WHEN** the selected fileset is also unresolvable for
+  note-reference text
+- **THEN** the preview requests the passage in the ESV fileset

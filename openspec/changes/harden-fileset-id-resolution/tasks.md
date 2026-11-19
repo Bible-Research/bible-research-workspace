@@ -43,8 +43,10 @@ before section 3 if it isn't already merged.
 - [ ] 3.1 In `useNoteRefFilesetId` (from
   add-note-ref-translation-setting), skip ids that resolve to
   `null` so an unresolvable pin falls through to the
-  selection and an unresolvable selection falls to ESV —
-  verify hook tests cover both skips
+  selection and an unresolvable selection falls to ESV — the
+  hook is book-agnostic, so the unresolvable check uses the
+  `:`+`findTextOption`-miss predicate directly rather than
+  `resolveTextFileset` — verify hook tests cover both skips
 - [ ] 3.2 On `SettingsRoute`, render a
   "pinned translation unavailable" state with a clear action
   when the stored pin is product-shaped and unresolvable —

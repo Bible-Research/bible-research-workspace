@@ -5,6 +5,12 @@ worktree off `origin/main`, PR `--base staging`, ≤79 chars/line,
 scoped `npm test`/`npm run lint` verification only.
 Depends on `add-note-ref-translation-setting` (needs
 `useNoteRefFilesetId`) — implement that change first.
+Ordering note vs `harden-fileset-id-resolution`: if this
+lands first, an unresolvable pin falls to ESV rather than to
+the selection (the `:`-id passthrough behavior still exists)
+— acceptable interim, section 3 of the hardening change
+restores the full chain. The visibility latch lives in
+`NoteCard` — pass it down as a prop or hoist the hook.
 
 ## 1. Overlay re-resolved verse text on note cards
 

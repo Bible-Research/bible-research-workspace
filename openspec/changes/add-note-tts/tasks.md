@@ -18,8 +18,10 @@
 - [ ] 2.1 backend: Create `annotations/services/
   tiptap_text.py` — a port of the frontend `toPlainText`
   (walk doc, collect text nodes, newline per block type,
-  pass non-doc strings through); verify a fixture test
-  produces the expected plain text incl. multi-block docs
+  pass non-doc strings through, mirror the bounded-walk
+  `MAX_WALK_DEPTH`/`MAX_WALK_NODES` caps); verify a fixture
+  test produces the expected plain text incl. multi-block
+  docs
 - [ ] 2.2 backend: Add `bible/services/google_tts/
   note_voices.py` reading `NOTE_TTS_VOICES` from settings
   (`{'lv': 'lv-LV-Chirp3-HD-…', 'en': 'en-US-Chirp3-HD-…'}`);
@@ -47,6 +49,14 @@
 - [ ] 2.6 backend: Surface `has_audio` in the serializer's
   `translations` metadata; verify the note payload reflects
   generated clips per language
+- [ ] 2.7 backend: Extend the translation worker's
+  reset-on-write path (`add-note-translations` task 2.3) so
+  rewriting a row's text also clears
+  `audio_status`/`audio_gcs_uri`/`audio_duration_seconds` —
+  cache validity keys to the row's current text, not just
+  language+voice; verify an edit that re-translates a played
+  language makes the next audio request re-synthesize the
+  new text
 
 ## 3. Backend: settings, deps, infra, docs
 

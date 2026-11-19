@@ -43,8 +43,10 @@ no way for a reader to view a note in their own language.
 - Owner-only verification: `POST|DELETE
   /api/v1/notes/<id>/translations/<lang>/verify/` — 404 for
   non-owners and missing rows, 409 `translation_not_ready` on
-  `pending`/`failed` rows (same `error`/`error_code` shape as
-  the error-contract spec).
+  `pending`/`failed`/`source` rows (same `error`/`error_code`
+  shape as the error-contract spec). Owner-only
+  `POST /api/v1/notes/<id>/retranslate/` re-runs `failed`
+  entries (non-owner → 404).
 - Frontend: a `SegmentedControl` language switcher on `NoteCard`;
   the default is the reader's persisted preferred note language
   (seeded from `uiLanguage`) with `source_language` fallback; a

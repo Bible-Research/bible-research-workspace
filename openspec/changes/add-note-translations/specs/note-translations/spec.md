@@ -18,9 +18,11 @@ user's profile, or the UI locale.
 
 #### Scenario: Detection runs per note
 
-- **WHEN** a note is created or its text is edited
+- **WHEN** a note is created or its text is edited and its
+  translation run completes
 - **THEN** `source_language` reflects the language detected
-  in that note's text, independent of any other note
+  in that note's text, independent of any other note; before
+  the run completes the field MAY be empty
 
 #### Scenario: Mixed-language corpus
 
@@ -41,9 +43,10 @@ detected source language SHALL hold the original text with
 
 - **WHEN** a note is created and its translation run completes
 - **THEN** one translation entry exists per configured target
-  language, and an entry for the detected source language —
-  even when it is not a configured target — holds the original
-  text marked `source`
+  language, and a single entry for the detected source
+  language — coinciding with the target entry when the source
+  is itself a configured target — holds the original text
+  marked `source`
 
 #### Scenario: Failed translation keeps status and error
 
@@ -199,16 +202,38 @@ MUST reset verification.
 
 #### Scenario: Unfinished translation cannot be verified
 
-- **WHEN** the owner POSTs verify for a `pending` or `failed`
-  translation
+- **WHEN** the owner POSTs verify for a `pending`, `failed`,
+  or `source` translation
 - **THEN** the API responds 409 with `error_code`
-  `translation_not_ready`
+  `translation_not_ready` — a `source` entry is the author's
+  own text, so there is nothing to verify
 
 #### Scenario: Re-translation clears verification
 
 - **WHEN** a verified translation is regenerated after an edit
 - **THEN** the new output is unverified until the author
   reviews it again
+
+### Requirement: Owner retry of failed translations
+
+The note's owner SHALL be able to re-run translation for
+`failed` entries via
+`POST /api/v1/notes/<id>/retranslate/`, which re-marks them
+`pending` and enqueues a new run. Non-owners SHALL get 404;
+entries not in `failed` state SHALL be left untouched.
+
+#### Scenario: Owner retries a failed translation
+
+- **WHEN** the owner POSTs retranslate for a note with a
+  `failed` entry
+- **THEN** that entry reports `pending` and a new translation
+  run is enqueued
+
+#### Scenario: Non-owner retry gets 404
+
+- **WHEN** a non-owner POSTs retranslate on someone else's
+  note
+- **THEN** the API responds 404 as though it does not exist
 
 ### Requirement: Reader language selection defaults
 

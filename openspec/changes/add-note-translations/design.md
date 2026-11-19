@@ -119,10 +119,15 @@ edit-during-flight leaves the newest text's run authoritative
 `note_text` is TipTap JSON, not HTML. The worker walks the doc,
 collects `text` values of `type:'text'` nodes, sends them in
 ONE `translate_text` call (`contents=[…]` batch), and splices
-results back in order — marks (bold, links, `scriptureMention`
-attrs) survive untouched. Non-doc strings fall back to a single
-plain-text call. An HTML round-trip was rejected: it needs a
-JSON↔HTML converter and risks schema drift.
+results back in order — marks and non-text nodes
+(`scriptureRef`/`mention` inline atoms) survive untouched.
+`@USFM.B.C[:V]` tokens stored as PLAIN text node content are
+masked to do-not-translate placeholders before the call and
+restored on splice-back — the API would otherwise mangle them
+and break `scriptureLinkify` matching in the translated doc.
+Non-doc strings fall back to a single plain-text call. An HTML
+round-trip was rejected: it needs a JSON↔HTML converter and
+risks schema drift.
 
 ### D6: Detection via the same `translate_text` call
 
@@ -142,7 +147,8 @@ retranslating everything, and the UI can badge quality tiers.
 
 ### D8: `?lang=` on detail AND list with per-note fallback
 
-`GET /notes/<id>/?lang=` and `GET /notes/?lang=` both swap
+`GET /api/v1/notes/<id>/?lang=` and `GET /api/v1/notes/?lang=`
+both swap
 `note_text` when a `ready`/`source` row exists — the list swap
 is a page-wide `translations` prefetch (one indexed query) so
 the notes view renders uniformly in one request. A note lacking
@@ -152,11 +158,12 @@ translation would hide real content.
 
 ### D9: Owner-only verify endpoint, never note PATCH
 
-`POST|DELETE /notes/<id>/translations/<lang>/verify/` sets or
-clears `author_verified`/`verified_at` on the child row.
-Non-owners get 404 (same as private-note access — the endpoint
-leaks nothing); `pending`/`failed` rows get 409
-`translation_not_ready` in the `error`/`error_code` shape.
+`POST|DELETE /api/v1/notes/<id>/translations/<lang>/verify/`
+sets or clears `author_verified`/`verified_at` on the child
+row. Non-owners get 404 (same as private-note access — the
+endpoint leaks nothing); `pending`/`failed`/`source` rows get
+409 `translation_not_ready` in the `error`/`error_code` shape
+(a `source` row is the author's own text — nothing to verify).
 Verification never rides on the note PATCH: it is a
 per-language action on a child row, and a note PATCH would
 wrongly interact with `source_hash` flows. Every fresh

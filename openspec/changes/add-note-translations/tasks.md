@@ -26,9 +26,11 @@
   all `type:'text'` node values in ONE `translate_text` call,
   splice-back in order, plain-text fallback for non-doc
   strings, detection via `translate_text` without
-  `source_language_code`, per-note ~10k char cap; verify with a
-  unit test on a real TipTap fixture incl. `scriptureMention`
-  marks that marks survive round-trip
+  `source_language_code`, per-note ~10k char cap, `@USFM…`
+  plain-text tokens masked before the call and restored on
+  splice-back; verify with a unit test on a real TipTap
+  fixture incl. `scriptureRef`/`mention` atoms and an embedded
+  `@USFM…` token that structure and tokens survive round-trip
 - [ ] 2.2 backend: Create `annotations/services/tasks.py`:
   `enqueue(note_id, source_hash)` issuing a Cloud Tasks POST
   to `{APP_BASE_URL}/api/v1/tasks/translate-note/` with an OIDC
@@ -68,14 +70,16 @@
   exists; verify tests cover `?lang=` on both endpoints plus
   the mixed-page fallback
 - [ ] 3.2 backend: Add owner-only
-  `POST|DELETE /notes/<id>/translations/<lang>/verify/`:
-  non-owner/missing → 404, `pending`/`failed` → 409
+  `POST|DELETE /api/v1/notes/<id>/translations/<lang>/verify/`:
+  non-owner/missing → 404, `pending`/`failed`/`source` → 409
   `translation_not_ready` in the `error`/`error_code` shape,
   idempotent set/clear of `author_verified`/`verified_at`;
-  verify tests cover all four outcomes
-- [ ] 3.3 backend: Owner-only `retranslate` action
-  re-enqueueing the task for `failed` rows (the frontend retry
-  path); verify it re-marks rows `pending` and enqueues
+  verify tests cover 404s, both 409 cases, set and clear
+- [ ] 3.3 backend: Owner-only
+  `POST /api/v1/notes/<id>/retranslate/` re-enqueueing the
+  task for `failed` rows only (non-owner → 404, other states
+  untouched — the frontend retry path); verify it re-marks
+  rows `pending` and enqueues
 - [ ] 3.4 backend: Update `bible_research/DEVELOPER_GUIDE.md`
   and `AGENTS.md` with the new model, endpoints, `?lang=`
   contract, and settings; verify docs match the code

@@ -77,7 +77,10 @@ exceeding the configured character cap SHALL fail with 413.
 A request for a language whose audio already exists SHALL
 return a fresh access URL for the existing clip without
 re-synthesizing; synthesis SHALL happen at most once per
-note-language-voice combination.
+note-language-voice-text combination — when the note's text
+for that language is regenerated, prior audio MUST be
+invalidated so the next request synthesizes the new text
+rather than serving the old clip.
 
 #### Scenario: Cache hit skips synthesis
 
@@ -85,6 +88,13 @@ note-language-voice combination.
   language
 - **THEN** the second request returns the stored clip's URL
   and no new synthesis occurs
+
+#### Scenario: Re-translation invalidates audio
+
+- **WHEN** a note's text is edited and its translation for a
+  played language is regenerated
+- **THEN** the stored audio no longer counts as existing and
+  the next request synthesizes the new text
 
 ### Requirement: Audio storage is bounded and cleaned up
 

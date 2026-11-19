@@ -83,7 +83,13 @@ frontend show the play state without extra fetches.
    source row/original; else require `status='ready'` (409
    `translation_not_ready` on `pending`/`failed`/missing).
 3. `audio_status='ready'` + blob exists → return a fresh
-   signed URL (cache hit — no re-synthesis).
+   signed URL (cache hit — no re-synthesis). The cache is
+   keyed to the ROW's current text, not just language+voice:
+   whenever the translation pipeline rewrites a row's text
+   (edit → re-translation), it also clears the row's
+   `audio_status`/`audio_gcs_uri`/`audio_duration_seconds`,
+   so a re-translated note re-synthesizes on next play
+   instead of serving the OLD text's clip.
 4. Miss → synthesize in-request (~1–2 s for typical notes,
    well under the 60 s GAE deadline), upload, record
    `audio_gcs_uri`/`audio_duration_seconds`, return
@@ -99,10 +105,12 @@ plus a second OIDC surface for no reliability win.
 
 New `annotations/services/tiptap_text.py` — a ~30-line port
 of the frontend `utils/tiptapContent.ts` `toPlainText`: walk
-the doc, collect text nodes, newline per block type.
-Synthesizing the TipDoc JSON verbatim would read markup
-aloud; an HTML path would need a converter. Non-doc strings
-pass through as-is.
+the doc, collect text nodes, newline per block type, and
+mirror the frontend's bounded-walk abuse caps
+(`MAX_WALK_DEPTH`/`MAX_WALK_NODES`) — note JSON is
+user-controlled. Synthesizing the TipDoc JSON verbatim would
+read markup aloud; an HTML path would need a converter.
+Non-doc strings pass through as-is.
 
 ### D4: Per-language voice registry in settings
 
@@ -152,7 +160,12 @@ The played language always matches the displayed one —
 - [Quota/billing abuse on the lazy endpoint] → authz scoped
   to accessible notes, per-note char cap (413), monthly usage
   counters in the existing pattern, `CharBudget`-style ledger
-  available if needed.
+  available if needed. Anonymous viewers of public notes CAN
+  trigger first-time synthesis — accepted for MVP because the
+  cost is one bounded clip per note-language and counters
+  surface anomalies; if abuse appears, gate first-time
+  synthesis to authenticated callers (anonymous plays then
+  return only already-generated audio).
 - [Race: two concurrent first-plays synthesize twice] →
   `if_generation_match`/update-or-create on the row bounds it
   to a duplicate blob, self-healing on next request.

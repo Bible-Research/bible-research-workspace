@@ -121,10 +121,12 @@ collects `text` values of `type:'text'` nodes, sends them in
 ONE `translate_text` call (`contents=[…]` batch), and splices
 results back in order — marks and non-text nodes
 (`scriptureRef`/`mention` inline atoms) survive untouched.
-`@USFM.B.C[:V]` tokens stored as PLAIN text node content are
-masked to do-not-translate placeholders before the call and
-restored on splice-back — the API would otherwise mangle them
-and break `scriptureLinkify` matching in the translated doc.
+`@USFM.C[.V[-E]]` tokens stored as PLAIN text node content
+(matched via the frontend's `SCRIPTURE_TOKEN_REGEX` so
+hand-typed colon variants are covered too) are masked to
+do-not-translate placeholders before the call and restored on
+splice-back — the API would otherwise mangle them and break
+`scriptureLinkify` matching in the translated doc.
 Non-doc strings fall back to a single plain-text call. An HTML
 round-trip was rejected: it needs a JSON↔HTML converter and
 risks schema drift.
@@ -169,7 +171,10 @@ per-language action on a child row, and a note PATCH would
 wrongly interact with `source_hash` flows. Every fresh
 translation write resets `author_verified=False,
 verified_at=NULL` — new machine output is unreviewed by
-definition.
+definition. The companion owner-only
+`POST /api/v1/notes/<id>/retranslate/` re-enqueues `failed`
+entries (non-owner → 404, other states untouched) so a retry
+is one cheap call, not an edit dance.
 
 ### D10: Frontend defaults and peek semantics
 

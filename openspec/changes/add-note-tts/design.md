@@ -82,9 +82,13 @@ frontend show the play state without extra fetches.
 2. Resolve the text row: `language == note.source_language` →
    source row/original; else require `status='ready'` (409
    `translation_not_ready` on `pending`/`failed`/missing).
-3. `audio_status='ready'` + blob exists → return a fresh
-   signed URL (cache hit — no re-synthesis). The cache is
-   keyed to the ROW's current text, not just language+voice:
+3. `audio_status='ready'` + blob exists AND `audio_gcs_uri`
+   matches the blob key computed from the CURRENT voice —
+   recompute `note-audio/{note_id}/{language}_{voice}.mp3`;
+   a mismatch (voice changed since synthesis) counts as a
+   miss → return a fresh signed URL (cache hit — no
+   re-synthesis). The cache is keyed to the ROW's current
+   text, not just language+voice:
    whenever the translation pipeline rewrites a row's text
    (edit → re-translation), it also clears the row's
    `audio_status`/`audio_gcs_uri`/`audio_duration_seconds`,

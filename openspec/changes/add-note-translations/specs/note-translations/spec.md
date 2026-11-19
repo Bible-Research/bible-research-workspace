@@ -104,9 +104,11 @@ SHALL be retried with backoff up to a bounded attempt count.
 ### Requirement: Translation preserves note text structure
 
 Translated note text SHALL keep the rich-text document
-structure and inline formatting (marks such as bold, links,
-and scripture mentions) of the original. Non-structured plain
-text SHALL be translated as plain text.
+structure and inline formatting of the original — marks such
+as bold and links, non-text `scriptureRef`/`mention` atoms,
+and plain-text scripture-reference tokens (masked through
+translation). Non-structured plain text SHALL be translated
+as plain text.
 
 #### Scenario: Formatted note keeps marks
 

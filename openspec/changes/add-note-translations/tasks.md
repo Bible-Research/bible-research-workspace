@@ -4,7 +4,8 @@
 
 - [ ] 1.1 backend: Add `Note.source_language` (CharField,
   `max_length=10`, blank) and the `NoteTranslation` model to
-  `annotations/models.py` — `note` FK
+  `annotations/models.py` — `id` CharField PK prefixed `NTR`
+  (uuid suffix, matching sibling model conventions), `note` FK
   (`related_name='translations'`, CASCADE), `language`, `text`,
   `status` (pending/ready/failed/source),
   `source_hash` (sha256, 64 chars), `engine`, `error`,
@@ -26,9 +27,11 @@
   all `type:'text'` node values in ONE `translate_text` call,
   splice-back in order, plain-text fallback for non-doc
   strings, detection via `translate_text` without
-  `source_language_code`, per-note ~10k char cap, `@USFM…`
-  plain-text tokens masked before the call and restored on
-  splice-back; verify with a unit test on a real TipTap
+  `source_language_code`, per-note ~10k char cap,
+  `@USFM.C[.V[-E]]` plain-text tokens (match via the
+  frontend's `SCRIPTURE_TOKEN_REGEX` so hand-typed colon
+  variants are covered) masked before the call and restored
+  on splice-back; verify with a unit test on a real TipTap
   fixture incl. `scriptureRef`/`mention` atoms and an embedded
   `@USFM…` token that structure and tokens survive round-trip
 - [ ] 2.2 backend: Create `annotations/services/tasks.py`:
@@ -53,8 +56,11 @@
 - [ ] 2.4 backend: Hook `NoteViewSet.perform_create` /
   `perform_update`: inside `transaction.on_commit`, upsert
   `pending` rows for `NOTE_TARGET_LANGUAGES` and enqueue —
-  update path only when `note_text` changed; verify a tag-only
-  PATCH enqueues nothing and a text PATCH does
+  update path only when `note_text` changed. Cover the
+  bulk-create path too (`bulk_create_notes` bypasses
+  `perform_create` — apply the same per-note upsert+enqueue);
+  verify a tag-only PATCH enqueues nothing, a text PATCH does,
+  and a bulk create enqueues per note
 - [ ] 2.5 backend: Add monthly Translate usage counter via the
   existing `increment_monthly_usage` pattern
   (`fileset_id='note-translate'`) and log billed chars per
@@ -130,9 +136,10 @@
 - [ ] 6.1 frontend: Add a `SegmentedControl` language switcher
   to `NoteCard` (when `translations.length > 1`) defaulting to
   `preferredNoteLanguage` with `source_language` fallback;
-  switching fetches `?lang=` text cached in an in-memory Map;
+  switching fetches `?lang=` text cached in an in-memory Map
+  AND persists the choice back to `preferredNoteLanguage`;
   verify a mixed-language list renders each card in the
-  reader's language
+  reader's language and a switch survives reload
 - [ ] 6.2 frontend: Add "Auto-translated" caption +
   source-language chip, `<Box lang={code}>` on the text
   container, and the "Show original" peek button (inline swap

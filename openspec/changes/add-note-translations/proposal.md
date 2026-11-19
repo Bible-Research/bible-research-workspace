@@ -96,7 +96,8 @@ no way for a reader to view a note in their own language.
   (`Note.source_language`, new `NoteTranslation`),
   `annotations/serializers.py` (translations meta, `?lang=` on
   detail and list), `annotations/views.py` (`perform_create`/
-  `perform_update` hooks, verify endpoint, worker task view),
+  `perform_update` hooks, verify + retranslate endpoints,
+  worker task view),
   `annotations/urls.py`, new
   `annotations/services/translation_service.py` +
   `annotations/services/tasks.py` (enqueue + OIDC verify),

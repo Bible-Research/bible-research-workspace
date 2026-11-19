@@ -13,9 +13,11 @@ audio request contract, and the frontend mini-player.
 
 Each note translation entry SHALL track audio state:
 `audio_status` of `none`, `pending`, `ready`, or `failed`, the
-stored audio object reference, and clip duration. Note API
-payloads SHALL expose per-language `has_audio` in the
-translations metadata.
+stored audio object reference, and clip duration. A failed
+synthesis SHALL mark the entry `failed`; `pending` is
+reserved (the MVP synthesizes synchronously, so no request
+leaves audio pending). Note API payloads SHALL expose
+per-language `has_audio` in the translations metadata.
 
 #### Scenario: Audio state listed per language
 

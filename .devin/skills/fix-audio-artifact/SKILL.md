@@ -143,8 +143,12 @@ vars must already be exported — REST honours
                      manifest="/tmp/audit.json", apply=True)
 
 Chapter-mode (`audio_chapter/`) entries additionally need a
-REST `_beta_client` seeded the same way from
-`google.cloud.texttospeech_v1beta1.services.text_to_speech`.
+REST beta client seeded the same way — pass `beta_client=`
+to `GoogleTTSClient`, wrapping a
+`texttospeech_v1beta1.TextToSpeechClient` built on
+`TextToSpeechRestTransport` from
+`google.cloud.texttospeech_v1beta1.services`
+`.text_to_speech.transports`.
 
 ## 5. Verify
 

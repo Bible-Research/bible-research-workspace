@@ -17,9 +17,10 @@ baked into the stored MP3** (hard-clipped speech onsets), not
 structural corruption and not delivery bugs. The full pipeline
 exists: audit → manifest → in-place regeneration.
 
-Reference docs: `bible_research/DEVELOPER_GUIDE.md` "Audio
-Artifact Audit" + "Audio Artifact Repair". Origin: Sentry
-issue 158588239 (NUM.24:14), built in PRs #122/#124/#126.
+Reference docs: `bible_research/DEVELOPER_GUIDE.md`
+"Audio Artifact Audit" → "Remediation workflow". Origin:
+Sentry issue 158588239 (NUM.24:14), built in PRs
+#122/#124/#126.
 
 ## 0. Preconditions
 
@@ -29,14 +30,31 @@ worktree is needed unless the run reveals a code bug to fix.
 
 - `export PATH="/opt/homebrew/bin:$PATH"` on every exec call —
   `gcloud`/`gh` are not on agent-shell PATH.
+- **Netskope CA bundle — export FIRST, before any Python
+  egress.** The local machine sits behind a TLS-intercepting
+  proxy; Python HTTPS (GCS downloads in the audit, pip) can
+  fail or hang without it. Build once, then export on every
+  call:
+
+      CERTIFI=$(venv/bin/python -c \
+        "import certifi; print(certifi.where())")
+      cat "$CERTIFI" \
+        "/Library/Application Support/Netskope/STAgent/data/nscacert.pem" \
+        > /tmp/combined-ca-bundle.pem
+      export REQUESTS_CA_BUNDLE=/tmp/combined-ca-bundle.pem \
+             SSL_CERT_FILE=/tmp/combined-ca-bundle.pem \
+             CURL_CA_BUNDLE=/tmp/combined-ca-bundle.pem \
+             PIP_CERT=/tmp/combined-ca-bundle.pem \
+             GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/tmp/combined-ca-bundle.pem
+
 - The main checkout's `venv/` must hold the dev-only decoder:
   `venv/bin/pip install "miniaudio==1.73"` (pinned in
   `requirements-dev.txt`; `--deep` fails fast without it).
 - GCS + TTS auth is ADC — `gcloud auth application-default
   print-access-token` must succeed; the signed-in account
   (user's) needs bucket write + Cloud TTS on the project.
-- `gcloud storage` reads/writes work through the proxy as-is;
-  the gRPC TTS call does NOT — see §4.
+- The CA bundle above fixes HTTPS egress; the gRPC TTS call
+  still fails through the proxy — see §4.
 
 ## 1. Identify the artifact that is actually served
 
@@ -47,12 +65,14 @@ The audio bucket is `{GCP_PROJECT}-bible-audio`
     {prefix}/{FILESET}/{VOICE}/{BOOK}/{CH}_timestamps.json
 
 - `LVSGLU8C1DA` → `audio/` prefix, verse-synthesis mode —
-  THIS is what the app serves today.
-- `LVSGLU8C2DA` → `audio_chapter/` prefix, chapter mode.
-- `audio_gemini/` and `audio_edge/` exist (edge covers GEN
-  only) but **nothing serves them** — do not repair them
-  unless the user says otherwise; `repair_audio_files`
-  reports them `unsupported_engine` anyway.
+  the fileset the frontend requests for Glück audio today.
+- `LVSGLU8C2DA` → `audio_chapter/` prefix, chapter mode —
+  also served; check its artifacts if the report persists.
+- `audio_gemini/` and `audio_edge/` exist (verify coverage
+  with `gcloud storage ls`) but **nothing serves them** —
+  do not repair them unless the user says otherwise;
+  `repair_audio_files` reports them `unsupported_engine`
+  anyway.
 - Voice dir comes from the blob path itself; the configured
   voice is `lv-LV-Chirp3-HD-Sadachbia` (settings default).
 
@@ -72,8 +92,9 @@ the defect is usually one clipped segment. Confirm it:
 
 `--book` scopes to one book (~50 MP3s); `--deep` decodes each
 MP3 and analyses **per verse** using the sidecar. Output like
-`clipped: verse 28: 350 near-full-scale sample(s)` — check the
-flagged verse matches (or is adjacent to) the reported one.
+`clipped: verse 28: 350 near-full-scale sample(s), longest
+run 5` — check the flagged verse matches (or is adjacent to)
+the reported one.
 Structural-only defects (desync/truncation) surface without
 `--deep`; content defects (clipping, dead silence) need it.
 The `--report` JSON is the manifest the repair step consumes —
@@ -100,20 +121,14 @@ also found a clipped GEN.50:26).
 
 ## 4. The Netskope gRPC failure (you WILL hit this locally)
 
-`--apply` fails per entry with
-`regen_failed: ServiceUnavailable: 503 … missing selected
-ALPN property` — the corporate TLS-intercepting proxy drops
-ALPN, which gRPC requires; CA bundles don't help. Run the
-apply step through an injected REST-transport client:
-
-    # Build the combined CA bundle once:
-    CERTIFI=$(venv/bin/python -c "import certifi; print(certifi.where())")
-    cat "$CERTIFI" \
-      "/Library/Application Support/Netskope/STAgent/data/nscacert.pem" \
-      > /tmp/combined-ca-bundle.pem
-    export REQUESTS_CA_BUNDLE=/tmp/combined-ca-bundle.pem \
-           SSL_CERT_FILE=/tmp/combined-ca-bundle.pem \
-           CURL_CA_BUNDLE=/tmp/combined-ca-bundle.pem
+`--apply` prints `FAILED {name}  regen_failed:
+ServiceUnavailable` per entry, and the logged traceback
+carries the real signature: `503 … missing selected ALPN
+property`. The TLS-intercepting proxy drops ALPN, which gRPC
+requires — CA bundles do NOT help here. Run the apply step
+through an injected REST-transport client (the §0 CA env
+vars must already be exported — REST honours
+`REQUESTS_CA_BUNDLE`/`SSL_CERT_FILE`):
 
     venv/bin/python manage.py shell
     >>> from google.cloud import texttospeech
@@ -155,9 +170,10 @@ at `bibleresearch.vercel.app/bible/{BOOK}.{CH}` near the verse.
 ## Guardrails
 
 - NEVER delete blobs (`gcloud storage rm`) as a fix — repair
-  regenerates in place; deletion is only the documented
-  fallback to force the next monthly regeneration.
+  regenerates in place. Deletion only helps if a generation
+  run is triggered afterwards, and the monthly job has no
+  scheduler today — repair is always the safer path.
 - Repair writes PROD artifacts — always show the dry-run plan
   first; only `--apply` entries the audit actually flagged.
-- `audio_chapter/`(C2DA) artifacts: same flow, but `--prefix
+- `audio_chapter/` (C2DA) artifacts: same flow, but `--prefix
   audio_chapter` on the audit and REST beta-client for apply.

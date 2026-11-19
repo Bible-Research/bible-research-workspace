@@ -217,6 +217,32 @@ list and engine from settings/env, monthly Translate usage
 counter in GCS reusing `increment_monthly_usage`
 (`fileset_id='note-translate'`), queue concurrency cap.
 
+### D12: Monthly coverage audit → Sentry
+
+A `check_note_translations` management command in
+`annotations/management/commands/` audits coverage: for every
+note, each configured target language MUST have a `ready` or
+`source` row whose `source_hash` matches the current
+`note_text` hash — misses are notes never enqueued, failed
+past retry exhaustion, or stale after an edit whose run died.
+Nonzero misses → `sentry_sdk.capture_message` at ERROR with
+per-language/per-status counts (lands in the existing
+unresolved-error queue, `bible-research-api`); zero → INFO
+log only. It is alert-only — remediation is the existing
+`retranslate` path / `translate_notes` command, not
+auto-magic inside the audit.
+
+It plugs into the existing `run_all_jobs` JOBS table with
+schedule `last_day_of_month` (predicate already exists), and
+a `google_cloud_scheduler_job` firing `0 3 28-31 * *` WITHOUT
+`--only` — the pass runs every entry whose schedule matches
+that day, so only `last_day_of_month` entries fire, exactly
+once, on the true last day. End-of-month timing means the
+audit reports just before the monthly free-tier counters
+roll. The scheduler SA pattern is already in
+`scheduler.tf` (`all_jobs_scheduler` + tokenCreator +
+`run.developer`) — the new job reuses it, no new SAs.
+
 ## Risks / Trade-offs
 
 - [TipTap schema drift: translated docs must round-trip

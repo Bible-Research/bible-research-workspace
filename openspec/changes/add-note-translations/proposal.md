@@ -101,10 +101,13 @@ no way for a reader to view a note in their own language.
   `annotations/urls.py`, new
   `annotations/services/translation_service.py` +
   `annotations/services/tasks.py` (enqueue + OIDC verify),
-  `bible_research/settings.py`, `requirements.txt`
+  `annotations/management/commands/` (`translate_notes`
+  backfill, `check_note_translations` audit + JOBS-table
+  entry), `bible_research/settings.py`, `requirements.txt`
   (`google-cloud-translate`, `google-cloud-tasks`),
-  `terraform/` (APIs, tasks queue, service accounts, IAM),
-  tests in `annotations/tests.py` (or a new test module), a
+  `terraform/` (APIs, tasks queue, Cloud Scheduler audit
+  trigger, service accounts, IAM), tests in
+  `annotations/tests.py` (or a new test module), a
   hand-written migration, `DEVELOPER_GUIDE.md`, `AGENTS.md`.
 - Frontend (`reactive-bible/`): `src/types.ts`
   (`NoteTranslationMeta`, `Note.source_language`,

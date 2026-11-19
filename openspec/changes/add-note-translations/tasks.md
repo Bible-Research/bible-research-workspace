@@ -123,6 +123,20 @@
   reuse the worker's translate path, skip notes already
   `ready` for all targets; verify `--user` scopes to that
   user's notes only
+- [ ] 4.5 backend: Add `check_note_translations` management
+  command auditing every note for a `ready`/`source` row per
+  configured target with a matching `source_hash`; nonzero
+  misses → `sentry_sdk.capture_message` at ERROR with
+  per-language/status counts, zero → INFO log; register it in
+  the `run_all_jobs` JOBS table as
+  `last_day_of_month`; verify a seeded-miss unit test emits
+  the Sentry call and a clean run logs only
+- [ ] 4.6 backend: Terraform: `google_cloud_scheduler_job`
+  `note_translations_audit` (`schedule "0 3 28-31 * *"`, no
+  `--only` override so the JOBS schedule predicates gate it)
+  invoking `all-jobs` via the existing `all_jobs_scheduler`
+  SA pattern in `scheduler.tf`; verify `terraform plan`
+  (user runs `apply`)
 
 ## 5. Frontend: types, API, store
 

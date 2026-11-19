@@ -247,6 +247,26 @@ entries not in `failed` state SHALL be left untouched.
   note
 - **THEN** the API responds 404 as though it does not exist
 
+### Requirement: Monthly translation coverage audit
+
+A scheduled job SHALL run at the end of each month and audit
+every note for a `ready` or `source` entry — per configured
+target language — whose text matches the note's current text.
+Any note missing or behind on a translation SHALL be reported
+as a Sentry alert with per-language/per-status counts.
+
+#### Scenario: Audit flags uncovered notes
+
+- **WHEN** the monthly audit finds notes lacking a current
+  `ready`/`source` entry for a configured target
+- **THEN** a Sentry alert is emitted listing how many notes
+  are uncovered per language
+
+#### Scenario: Full coverage stays quiet
+
+- **WHEN** the monthly audit finds every note covered
+- **THEN** no Sentry alert is emitted
+
 ### Requirement: Reader language selection defaults
 
 The frontend SHALL default each note's displayed language to

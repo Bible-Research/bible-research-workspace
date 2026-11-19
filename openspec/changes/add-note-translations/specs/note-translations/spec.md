@@ -1,0 +1,248 @@
+# Spec Delta
+
+## Purpose
+
+Defines machine translation of user notes: per-note source
+language detection, translated copies with status and
+verification metadata, the `?lang=` serving contract on note
+endpoints, and the reader-facing language-switching UX.
+
+## ADDED Requirements
+
+### Requirement: Per-note source language
+
+Each note SHALL carry a `source_language` ISO 639-1 code
+detected from that note's own text. Detection MUST run per
+note and MUST NOT be inferred from the note's owner, the
+user's profile, or the UI locale.
+
+#### Scenario: Detection runs per note
+
+- **WHEN** a note is created or its text is edited
+- **THEN** `source_language` reflects the language detected
+  in that note's text, independent of any other note
+
+#### Scenario: Mixed-language corpus
+
+- **WHEN** one user's notes are written in different source
+  languages
+- **THEN** each note reports its own `source_language`
+
+### Requirement: One translation row per note-language
+
+A note SHALL have at most one translation entry per target
+language, each carrying translated text, a `status` of
+`pending`, `ready`, `failed`, or `source`, the engine that
+produced it, and an error code when failed. The entry for the
+detected source language SHALL hold the original text with
+`status` `source`.
+
+#### Scenario: Translation targets created on write
+
+- **WHEN** a note is created
+- **THEN** one translation entry exists per configured target
+  language, with the source-language entry marked `source`
+
+#### Scenario: Failed translation keeps status and error
+
+- **WHEN** translation of one language fails
+- **THEN** that entry reports `failed` with an error code and
+  other languages are unaffected
+
+### Requirement: Eager asynchronous translation on note writes
+
+Creating a note SHALL enqueue asynchronous translation into
+every configured target language, and the write response SHALL
+return before translation completes with `pending` metadata.
+Editing SHALL re-enqueue only when `note_text` changed.
+
+#### Scenario: Create returns pending translations
+
+- **WHEN** a note is created
+- **THEN** the response already lists the target languages as
+  `pending` so clients can render a translating state
+
+#### Scenario: Non-text edits skip translation
+
+- **WHEN** a note is updated without changing `note_text`
+- **THEN** no new translation run is started
+
+#### Scenario: Text edits refresh translations
+
+- **WHEN** a note's `note_text` is edited
+- **THEN** its translation entries are regenerated for the new
+  text
+
+### Requirement: Stale translation runs are harmless
+
+An asynchronous translation run SHALL be keyed to the exact
+note text it was enqueued for; a run arriving after a newer
+edit MUST be a no-op so the freshest text wins. Failed runs
+SHALL be retried with backoff up to a bounded attempt count.
+
+#### Scenario: Superseded run no-ops
+
+- **WHEN** a queued translation run executes after the note
+  was edited again
+- **THEN** it writes nothing and the newer text's translations
+  are used
+
+#### Scenario: Transient failure retries
+
+- **WHEN** a translation run fails transiently
+- **THEN** it is retried with backoff and gives up after the
+  configured maximum, leaving the entry `failed`
+
+### Requirement: Translation preserves note text structure
+
+Translated note text SHALL keep the rich-text document
+structure and inline formatting (marks such as bold, links,
+and scripture mentions) of the original. Non-structured plain
+text SHALL be translated as plain text.
+
+#### Scenario: Formatted note keeps marks
+
+- **WHEN** a structured note containing formatted spans is
+  translated
+- **THEN** the translated document renders with the same
+  structure and formatting in the target language
+
+#### Scenario: Oversized note is marked, not truncated
+
+- **WHEN** a note's text exceeds the configured per-note
+  character cap
+- **THEN** its translation entries are marked `failed` rather
+  than silently truncated
+
+### Requirement: Translation metadata in note payloads
+
+Every note API representation — detail, list, and create
+responses — SHALL include `source_language` and a
+`translations` list with each entry's `language`, `status`,
+`verified` flag, and `engine`.
+
+#### Scenario: Note payload lists languages
+
+- **WHEN** a client fetches a note that has translation
+  entries
+- **THEN** the payload contains `source_language` and one
+  metadata entry per language
+
+### Requirement: Translated serving on note detail
+
+`GET /api/v1/notes/<id>/?lang=<code>` SHALL return `note_text`
+in the requested language when a `ready` or `source` entry
+exists. Otherwise `note_text` MUST be returned unchanged —
+the request MUST NOT fail.
+
+#### Scenario: Ready translation served
+
+- **WHEN** a caller requests a note with `?lang=` matching a
+  `ready` translation
+- **THEN** `note_text` contains the translated document
+
+#### Scenario: Missing translation falls back to original
+
+- **WHEN** a caller requests a note with `?lang=` that has no
+  `ready` or `source` entry
+- **THEN** the response succeeds with the original `note_text`
+  and the translation metadata intact
+
+### Requirement: Translated serving on note list
+
+`GET /api/v1/notes/?lang=<code>` SHALL apply the same swap to
+every note in the page in one request, with the same
+unchanged-text fallback per note.
+
+#### Scenario: Page rendered in reader language
+
+- **WHEN** a caller lists notes with `?lang=`
+- **THEN** each note with a `ready` or `source` entry for that
+  language returns translated `note_text`, and the rest return
+  their original text
+
+### Requirement: Author verification of translations
+
+The note's owner SHALL be able to mark a `ready` translation
+as author-verified and to revoke that mark, via
+`POST`/`DELETE` on
+`/api/v1/notes/<id>/translations/<lang>/verify/`. Non-owners
+and missing entries SHALL get 404; `pending` or `failed`
+entries SHALL get 409 with `error_code`
+`translation_not_ready`. Fresh translation output MUST reset
+verification.
+
+#### Scenario: Owner verifies a ready translation
+
+- **WHEN** the owner POSTs verify for a `ready` translation
+- **THEN** the entry reports `verified` and a verification
+  timestamp
+
+#### Scenario: Non-owner gets 404
+
+- **WHEN** a non-owner POSTs verify on someone else's note
+- **THEN** the API responds 404 as though it does not exist
+
+#### Scenario: Unfinished translation cannot be verified
+
+- **WHEN** the owner POSTs verify for a `pending` or `failed`
+  translation
+- **THEN** the API responds 409 with `error_code`
+  `translation_not_ready`
+
+#### Scenario: Re-translation clears verification
+
+- **WHEN** a verified translation is regenerated after an edit
+- **THEN** the new output is unverified until the author
+  reviews it again
+
+### Requirement: Reader language selection defaults
+
+The frontend SHALL default each note's displayed language to
+the reader's persisted preferred note language (seeded from
+the UI language), falling back to the note's
+`source_language` when no usable translation exists. Choosing
+a language SHALL update the persisted preference.
+
+#### Scenario: Preferred language applied across notes
+
+- **WHEN** a reader whose preferred note language differs from
+  a note's source language views the notes list
+- **THEN** notes with a usable translation display in the
+  preferred language and the rest display their originals
+
+### Requirement: Show-original peek
+
+While viewing a translation, the reader SHALL be able to peek
+at the original text inline without a fetch and without
+changing the selected language, and toggle back.
+
+#### Scenario: Peek leaves selection untouched
+
+- **WHEN** the reader invokes "Show original" on a translated
+  note
+- **THEN** the original text displays inline while the
+  language selection and stored preference remain on the
+  translation
+
+### Requirement: Translation states and trust signals surfaced
+
+Translated notes SHALL always be labeled as machine output,
+with an explicit retry affordance on `failed` (never silent
+fallback to source text) and a "Translating…" state on
+`pending`. Author-verified translations SHALL display a
+distinct "Verified by author" indicator visible to readers;
+only the author sees the verify action.
+
+#### Scenario: Failed state offers retry
+
+- **WHEN** a note's translation entry is `failed`
+- **THEN** the UI surfaces the failure with a retry control
+  instead of silently showing the original as if translated
+
+#### Scenario: Author marks translation verified
+
+- **WHEN** the author uses the verify action on their own
+  ready translation
+- **THEN** a "Verified by author" indicator replaces the plain
+  auto-translated label for all viewers

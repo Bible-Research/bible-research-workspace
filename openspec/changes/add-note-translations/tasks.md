@@ -1,0 +1,152 @@
+# Tasks
+
+## 1. Backend: model + migration
+
+- [ ] 1.1 backend: Add `Note.source_language` (CharField,
+  `max_length=10`, blank) and the `NoteTranslation` model to
+  `annotations/models.py` — `note` FK
+  (`related_name='translations'`, CASCADE), `language`, `text`,
+  `status` (pending/ready/failed/source),
+  `source_hash` (sha256, 64 chars), `engine`, `error`,
+  `author_verified`, `verified_at`, timestamps,
+  `UniqueConstraint(note, language)`; verify no line exceeds
+  79 chars and `python manage.py check` passes
+- [ ] 1.2 backend: Hand-write the `annotations` migration for
+  both changes modeled on the latest existing migration;
+  verify `dependencies` names the real latest migration and
+  `python manage.py check` passes (never run
+  makemigrations/migrate)
+
+## 2. Backend: translation service + worker pipeline
+
+- [ ] 2.1 backend: Create
+  `annotations/services/translation_service.py` with
+  `translate_texts(texts, source, targets)` (language-agnostic
+  so comments can reuse it): structural TipDoc walk batching
+  all `type:'text'` node values in ONE `translate_text` call,
+  splice-back in order, plain-text fallback for non-doc
+  strings, detection via `translate_text` without
+  `source_language_code`, per-note ~10k char cap; verify with a
+  unit test on a real TipTap fixture incl. `scriptureMention`
+  marks that marks survive round-trip
+- [ ] 2.2 backend: Create `annotations/services/tasks.py`:
+  `enqueue(note_id, source_hash)` issuing a Cloud Tasks POST
+  to `{APP_BASE_URL}/api/v1/tasks/translate-note/` with an OIDC
+  token for `TASKS_INVOKER_SA_EMAIL`; when
+  `not IS_GCP_ENVIRONMENT`, call the worker function inline;
+  verify a local note create translates without any GCP infra
+- [ ] 2.3 backend: Add the worker endpoint
+  `POST /api/v1/tasks/translate-note/` (`AllowAny` + OIDC
+  `id_token.verify_oauth2_token` + token-email check against
+  `TASKS_INVOKER_SA_EMAIL`): stale `source_hash` → 204 no-op;
+  detect + store `source_language`; translate per target
+  (target == source → `status='source'` copy); upsert rows
+  stamping the `engine` actually used; reset
+  `author_verified=False`/`verified_at=NULL` on every write;
+  failure → row `failed` + non-2xx for retry; verify tests
+  cover 401 on bad/missing OIDC and the stale-hash no-op
+- [ ] 2.4 backend: Hook `NoteViewSet.perform_create` /
+  `perform_update`: inside `transaction.on_commit`, upsert
+  `pending` rows for `NOTE_TARGET_LANGUAGES` and enqueue —
+  update path only when `note_text` changed; verify a tag-only
+  PATCH enqueues nothing and a text PATCH does
+- [ ] 2.5 backend: Add monthly Translate usage counter via the
+  existing `increment_monthly_usage` pattern
+  (`fileset_id='note-translate'`) and log billed chars per
+  language; verify a unit test asserts the counter increments
+
+## 3. Backend: API contract + verify endpoint
+
+- [ ] 3.1 backend: Extend `NoteSerializer`/`to_representation`
+  with `source_language` and `translations` meta (`language`,
+  `status`, `verified`, `engine`) via a `translations`
+  prefetch; apply `?lang=` swap on detail AND list with
+  unchanged-`note_text` fallback when no `ready`/`source` row
+  exists; verify tests cover `?lang=` on both endpoints plus
+  the mixed-page fallback
+- [ ] 3.2 backend: Add owner-only
+  `POST|DELETE /notes/<id>/translations/<lang>/verify/`:
+  non-owner/missing → 404, `pending`/`failed` → 409
+  `translation_not_ready` in the `error`/`error_code` shape,
+  idempotent set/clear of `author_verified`/`verified_at`;
+  verify tests cover all four outcomes
+- [ ] 3.3 backend: Optional owner-only `retranslate` action
+  re-enqueueing the task for `failed` rows (the frontend retry
+  path); verify it re-marks rows `pending` and enqueues
+- [ ] 3.4 backend: Update `bible_research/DEVELOPER_GUIDE.md`
+  and `AGENTS.md` with the new model, endpoints, `?lang=`
+  contract, and settings; verify docs match the code
+
+## 4. Backend: settings, deps, infra
+
+- [ ] 4.1 backend: Add settings `NOTE_TARGET_LANGUAGES`
+  (default `['en','lv']`), `NOTE_TRANSLATION_ENGINE`
+  (`'google-nmt'`), `TASKS_INVOKER_SA_EMAIL`, `TASK_QUEUE_ID`,
+  `APP_BASE_URL` via the `_audio_settings_source`
+  env/config.yaml pattern; verify config.yaml and env-var
+  overrides both work
+- [ ] 4.2 backend: Add `google-cloud-translate` and
+  `google-cloud-tasks` to `requirements.txt` pinned to
+  releases ≥7 days old; verify the app imports cleanly
+- [ ] 4.3 backend: Terraform: enable `translate.googleapis.com`
+  + `cloudtasks.googleapis.com` in `locals.apis`; add
+  `google_cloud_tasks_queue` (`max_attempts=5`, exponential
+  backoff, `max_concurrent_dispatches=5`),
+  `google_service_account.tasks_invoker` +
+  `serviceAccountTokenCreator` for the Cloud Tasks service
+  agent, `roles/cloudtasks.enqueuer` and
+  `roles/cloudtranslate.user` on the appspot SA; verify
+  `terraform plan` (user runs `apply`)
+
+## 5. Frontend: types, API, store
+
+- [ ] 5.1 frontend: Add `NoteTranslationMeta`,
+  `Note.source_language`, `Note.translations` to
+  `src/types.ts`; extend `src/api/notes.ts` with `lang` params
+  on detail+list fetches and verify/unverify calls; verify
+  `tsc` and `npm run lint` pass
+- [ ] 5.2 frontend: Add a persisted `preferredNoteLanguage`
+  Zustand slice seeded from `uiLanguage`; verify the preference
+  persists across reload and seeds correctly on first run
+- [ ] 5.3 frontend: Update MSW handlers/fixtures with
+  `source_language`, `translations` meta, `?lang=` swap, and
+  the verify endpoint; verify existing tests still pass
+  (`npm test -- --run`)
+
+## 6. Frontend: NoteCard language UX
+
+- [ ] 6.1 frontend: Add a `SegmentedControl` language switcher
+  to `NoteCard` (when `translations.length > 1`) defaulting to
+  `preferredNoteLanguage` with `source_language` fallback;
+  switching fetches `?lang=` text cached in an in-memory Map;
+  verify a mixed-language list renders each card in the
+  reader's language
+- [ ] 6.2 frontend: Add "Auto-translated" caption +
+  source-language chip, `<Box lang={code}>` on the text
+  container, and the "Show original" peek button (inline swap
+  to the original `note_text`, no fetch, selection unchanged,
+  labeled "Original (<source_language>)"); verify tests cover
+  peek toggle and unchanged selection
+- [ ] 6.3 frontend: Add author-only "Mark as verified" /
+  un-verify actions and a "Verified by author" chip visible to
+  all viewers (distinct from the auto-translated gray); verify
+  the action is hidden for `status='source'` and non-owners
+- [ ] 6.4 frontend: Surface `pending` ("Translating…"
+  skeleton on the switcher), `failed` (tooltip + retry icon
+  hitting the retranslate endpoint), and a "translations
+  updating" hint after `editNote`; verify tests cover all
+  three states and no silent source-text fallback on `failed`
+- [ ] 6.5 frontend: Update `DEVELOPER_GUIDE.md` with the
+  switcher, default-language rules, peek, and verification UX;
+  verify docs match shipped UI
+
+## Workflow follow-up
+
+- User runs `python manage.py makemigrations annotations` to
+  confirm the hand-written migration matches, `python
+  manage.py migrate` on environments that need it, and
+  `terraform apply` for the new APIs/queue/SAs.
+- Deploy order: terraform → backend → frontend; then set
+  `NOTE_TARGET_LANGUAGES` in prod config.
+- Archive the change after PRs merge (`openspec archive`);
+  verify `openspec validate --all --strict` after archiving.

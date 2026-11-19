@@ -1,7 +1,7 @@
 ---
 name: fix-sentry-issue-frontend
 description: Pull unresolved production errors and developer
-  "Report a problem" reports from the Sentry reactive-bible-web
+  "Contact developer" reports from the Sentry reactive-bible-web
   project, reproduce and fix them on a branch cut from main,
   open a PR, and mark the Sentry issue resolved only
   after the PR merges. Invoke when the user asks to fix
@@ -51,7 +51,7 @@ Only `level:error` exception events are auto-fixable.
 `reportType:*` streams and warning-level events are excluded
 from this query by the level filter.
 
-### 1b. User reports ("Report a problem" menu flow)
+### 1b. User reports ("Contact developer" menu flow)
 
 Every `sendUserReport` call emits a `user report` message event
 that groups under ONE issue. Find that issue, then list its
@@ -66,11 +66,15 @@ events:
 lists feedback entries with linked event ids.)
 
 Each event carries a `userReport` context: `note` (the
-description), `reportedBy`, `bookId`, `chapter`,
-`textFilesetId`, `audioFilesetId`. Filter out event ids already
-in the processed ledger (step 7). Today only developers file
-reports, so treat every unprocessed report as a high-signal bug
-report.
+description), `reportedBy`, `category`, `bookId`, `chapter`,
+`textFilesetId`, `audioFilesetId`, plus a `reportCategory` tag
+(`bug` | `feature` | `general`) on both the event and its
+feedback entry. Only `reportCategory:bug` events — plus legacy
+reports with no category tag — belong in this bug-fix queue;
+`feature` and `general` messages are reviewed via the
+user-feedback stream, never auto-fixed. Anonymous submissions
+may also carry a reply `email` on the feedback entry. Filter
+out event ids already in the processed ledger (step 7).
 
 ## 2. Pick and analyze one item
 

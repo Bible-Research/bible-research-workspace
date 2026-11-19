@@ -6,7 +6,7 @@ scoped `npm test`/`npm run lint` verification only.
 
 ## 1. Store + resolution plumbing
 
-- [ ] 1.1 Add `noteRefFilesetId: string | null` +
+- [x] 1.1 Add `noteRefFilesetId: string | null` +
   `setNoteRefFilesetId` to `BibleState`/`initialState` in
   `src/store.ts`; include it in `partializeState`
   (`src/stores/bibleStore/persistence.ts`), bump persist
@@ -16,14 +16,14 @@ scoped `npm test`/`npm run lint` verification only.
   the `{ version: 9 }` seed in `src/i18n/index.test.ts` —
   verify with a persistence test that a v9 blob migrates and
   `partializeState` round-trips the field
-- [ ] 1.2 Add `useNoteRefFilesetId()` hook
+- [x] 1.2 Add `useNoteRefFilesetId()` hook
   (`src/hooks/useNoteRefFilesetId.ts`) returning
   `noteRefFilesetId ?? activeTextFilesetId` — verify a unit
   test covers both branches (override set vs. follow selection)
 
 ## 2. Preview + note surfaces use the resolver
 
-- [ ] 2.1 Replace `ScripturePassage`'s hardcoded `FILESET_ID`
+- [x] 2.1 Replace `ScripturePassage`'s hardcoded `FILESET_ID`
   with the hook + `resolveTextFileset(id,
   toUsfmCode(reference.book) ?? reference.book, translations)`
   — `reference.book` is a display name; the raw name breaks
@@ -33,13 +33,13 @@ scoped `npm test`/`npm run lint` verification only.
   in `ScripturePassagePopover` — verify the existing
   `ScripturePassage` tests pass and a new test asserts
   `getVersesInChapter` receives the active/pinned id
-- [ ] 2.2 Pass the hook's value into `useVerseTexts` in
+- [x] 2.2 Pass the hook's value into `useVerseTexts` in
   `EditNoteModal` and `AddTagNoteModal` — verify their tests
   still pass and linked-verse text honors the pin
 
 ## 3. TranslationSelector picker mode
 
-- [ ] 3.1 Add controlled-picker props (`opened`, `onClose`,
+- [x] 3.1 Add controlled-picker props (`opened`, `onClose`,
   `seedFilesetId`, `onPickText`, pick-text-only mode): hide
   BOTH audio surfaces (radio group + Advanced raw-fileset
   radios), swap the seed id at every active-fileset read site
@@ -56,30 +56,30 @@ scoped `npm test`/`npm run lint` verification only.
 
 ## 4. Settings page + menu entry
 
-- [ ] 4.1 Create `src/routes/SettingsRoute.tsx` (lazy, public)
+- [x] 4.1 Create `src/routes/SettingsRoute.tsx` (lazy, public)
   with the note-reference-translation control: `selected` →
   `setNoteRefFilesetId(null)`, `pinned` → opens the picker;
   shows the pinned translation name/abbr with change/reset —
   verify a route test covers select, pick, reset
-- [ ] 4.2 Register `/settings` in `src/routes/index.tsx` and
+- [x] 4.2 Register `/settings` in `src/routes/index.tsx` and
   whitelist the path for `overflow: auto` in `App.tsx` —
   verify `/settings` renders and scrolls like
   `/getting-started`
-- [ ] 4.3 Add the "Settings" entry (icon + `t('menu.settings')`)
+- [x] 4.3 Add the "Settings" entry (icon + `t('menu.settings')`)
   to `MainMenu`, navigating to `/settings` and closing the
   drawer — verify a `MainMenu` test for anonymous and
   authenticated renders
 
 ## 5. i18n + docs
 
-- [ ] 5.1 Add `menu.settings` and `settings.*` keys to
+- [x] 5.1 Add `menu.settings` and `settings.*` keys to
   `en/common.json` (source) plus `lv`/`ru` — verify `npm test`
   i18n specs pass and no key renders raw
-- [ ] 5.2 Update `reactive-bible/AGENTS.md` +
+- [x] 5.2 Update `reactive-bible/AGENTS.md` +
   `DEVELOPER_GUIDE.md` (settings surface, preview fileset
   contract, `useNoteRefFilesetId`) — verify doc text matches
   the shipped behavior
-- [ ] 5.3 Run `npm run lint` (0 errors/0 warnings) and
+- [x] 5.3 Run `npm run lint` (0 errors/0 warnings) and
   `awk 'length > 79'` on every touched file — verify clean
 
 ## Workflow follow-up

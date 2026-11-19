@@ -25,6 +25,12 @@ fileset model, auth quirks, caching, error contracts).
   DBT ids otherwise. Changes to provider routing, the
   `error`/`error_code` failure contract, or note/tag/comment
   payloads usually touch BOTH repos.
+- Every provider surface is gated to the 66-book Protestant
+  canon (`openspec/specs/book-canon/`): the backend
+  intersects search `books` with the canon, answers
+  non-canonical passages as `book_not_in_fileset`, and drops
+  non-canonical rows — the frontend's hardcoded 66-book model
+  relies on that guarantee.
 - `/bible/translations/` normalization lives in
   `src/utils/filesetGroups.ts` (frontend) with the backend
   half in `bible/services/fileset_groups.py` (`text_options`/

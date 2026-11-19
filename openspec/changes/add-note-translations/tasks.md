@@ -10,8 +10,11 @@
   `status` (pending/ready/failed/source),
   `source_hash` (sha256, 64 chars), `engine`, `error`,
   `author_verified`, `verified_at`, timestamps,
-  `UniqueConstraint(note, language)`; verify no line exceeds
-  79 chars and `python manage.py check` passes
+  `UniqueConstraint(note, language)` (its btree covers the
+  hot `note_id + language` lookups) plus
+  `Index(fields=['language', 'status'])` for single-language
+  scans (readers typically request one language); verify no
+  line exceeds 79 chars and `python manage.py check` passes
 - [ ] 1.2 backend: Hand-write the `annotations` migration for
   both model changes modeled on the latest existing migration;
   verify `dependencies` names the real latest migration and

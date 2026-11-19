@@ -72,7 +72,12 @@ See proposal.md — Why. Key facts from investigation:
 related_name='translations' CASCADE,
 language, text, status, source_hash, engine, error,
 author_verified, verified_at, created_at, updated_at)` with
-`UniqueConstraint(note, language)`, plus
+`UniqueConstraint(note, language)` — its btree already covers
+the hot `note_id + language` lookups (detail `?lang=` get +
+list prefetch) — plus a separate `Index(language, status)`
+for single-language scans (readers typically request one
+language; also serves backfill/diagnostics filters on
+`status`), plus
 `Note.source_language`. Each note carries at most 2–3 short
 rows; every read is one indexed FK lookup (or a
 `prefetch_related`) — negligible next to the provider call

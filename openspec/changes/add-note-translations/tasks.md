@@ -188,9 +188,17 @@
   `pending` translations so `Translating…` flips to `ready`
   without a page reload; verify the refetch fires once and
   stops after `ready`/`failed`
-- [ ] 6.7 frontend: Update `DEVELOPER_GUIDE.md` with the
-  switcher, default-language rules, peek, and verification UX;
-  verify docs match shipped UI
+- [ ] 6.7 frontend: Add an "Auto-translate notes" toggle to
+  `MainMenu` bound to a persisted `noteAutoTranslate` setting
+  (default ON, i18n'd label): when OFF, `?lang=` is omitted
+  from note list/detail fetches and `NoteCard` renders
+  `note_text` with switcher/peek/verify hidden — display-only,
+  backend translation keeps running; verify the preference
+  persists across reload and the toggle hides all translation
+  UI
+- [ ] 6.8 frontend: Update `DEVELOPER_GUIDE.md` with the
+  switcher, default-language rules, peek, auto-translate
+  toggle, and verification UX; verify docs match shipped UI
 
 ## Workflow follow-up
 

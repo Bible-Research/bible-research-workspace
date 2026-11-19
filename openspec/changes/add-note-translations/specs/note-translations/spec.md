@@ -282,6 +282,26 @@ a language SHALL update the persisted preference.
 - **THEN** notes with a usable translation display in the
   preferred language and the rest display their originals
 
+### Requirement: Auto-translate display toggle
+
+The reader SHALL be able to disable translated display via a
+persisted app-menu setting (default ON). When disabled, every
+note renders its original `note_text` and all translation
+controls (switcher, peek, verify) are hidden. The toggle is
+display-level only — it MUST NOT stop the backend pipeline;
+other readers still get translations.
+
+#### Scenario: Toggle off shows originals only
+
+- **WHEN** a reader disables auto-translate and views notes
+- **THEN** every card shows the original text with no
+  translation controls, regardless of any `ready` entries
+
+#### Scenario: Toggle on restores translated display
+
+- **WHEN** the reader re-enables auto-translate
+- **THEN** the preferred-language rendering rules apply again
+
 ### Requirement: Show-original peek
 
 While viewing a translation, the reader SHALL be able to peek

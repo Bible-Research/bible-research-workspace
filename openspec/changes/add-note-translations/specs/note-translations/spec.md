@@ -291,6 +291,14 @@ only the author sees the verify action.
 - **THEN** the UI surfaces the failure with a retry control
   instead of silently showing the original as if translated
 
+#### Scenario: Language fetch failure keeps last-good content
+
+- **WHEN** a `?lang=` request fails (network error or 5xx)
+- **THEN** the card keeps rendering the last successfully
+  fetched text and surfaces a retryable error notification —
+  it MUST NOT blank the note or present the original text as
+  if it were the requested translation
+
 #### Scenario: Author marks translation verified
 
 - **WHEN** the author uses the verify action on their own

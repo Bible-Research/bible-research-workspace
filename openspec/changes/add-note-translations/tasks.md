@@ -163,12 +163,18 @@
   hitting the retranslate endpoint), and a "translations
   updating" hint after `editNote`; verify tests cover all
   three states and no silent source-text fallback on `failed`
-- [ ] 6.5 frontend: Schedule a one-shot delayed refetch of the
+- [ ] 6.5 frontend: Handle `?lang=` fetch failure (network/
+  5xx): keep the last successfully rendered text, show a
+  retryable localized error notification (existing
+  `errorText`/notification pattern) — never blank the card or
+  render the original as if it were the requested language;
+  verify tests cover the failure path and retry
+- [ ] 6.6 frontend: Schedule a one-shot delayed refetch of the
   note (or notes list) after `addTagNote`/`editNote` returns
   `pending` translations so `Translating…` flips to `ready`
   without a page reload; verify the refetch fires once and
   stops after `ready`/`failed`
-- [ ] 6.6 frontend: Update `DEVELOPER_GUIDE.md` with the
+- [ ] 6.7 frontend: Update `DEVELOPER_GUIDE.md` with the
   switcher, default-language rules, peek, and verification UX;
   verify docs match shipped UI
 

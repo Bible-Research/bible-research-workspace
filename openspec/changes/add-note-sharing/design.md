@@ -71,8 +71,10 @@ broken contract). Downward: clearing `public` clears
 tag cascade — so `published=true ∧ public=false` is
 unreachable. Unpublishing (`published=false`) leaves
 `public` alone: the link keeps working. The frontend
-mirrors this by rendering the `public` checkbox
-locked-on while a note is published.
+mirrors this by locking the `public` control on while a
+note is published and the user carries `can_publish` —
+a non-publisher keeps it usable so clearing `public`
+still unlists the note via the downward coercion.
 
 *Alternative considered*: reuse `public` as the directory
 flag and gate it. Rejected — ordinary users would lose

@@ -420,7 +420,10 @@ the viewer does not own; anonymous readers SHALL see a
 "Log in to save" link with a return path instead.
 Publish controls SHALL render only when `can_publish`,
 and a published note's `public` checkbox SHALL be
-checked and disabled.
+checked and disabled only while the user can_publish —
+a non-publisher keeps the public control usable so
+clearing `public` still unlists the note (the server
+clears `published` with it).
 
 #### Scenario: Publish toggle hidden for non-publishers
 
@@ -439,6 +442,13 @@ checked and disabled.
 - **WHEN** a publisher edits a published note
 - **THEN** the `public` checkbox is checked and disabled,
   matching the server-side flag invariant
+
+#### Scenario: Non-publisher can still unlist
+
+- **WHEN** a user whose publish permission was revoked
+  edits a note that is still published
+- **THEN** the `public` control stays usable, and
+  clearing it unlists the note via the flag invariant
 
 #### Scenario: Visitor saves a public note
 

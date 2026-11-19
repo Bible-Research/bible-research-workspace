@@ -114,9 +114,11 @@
   existing `isPublic` plumbing); publish toggle on notes
   AND the tag control wherever `setTagPublic` lives —
   both gated on `can_publish`; `public` checkbox locked
-  on while a note is published. Verify: unit tests —
-  toggle absent when false, checkbox locked when
-  published.
+  on while a note is published AND the user can_publish —
+  a non-publisher keeps the public control usable so
+  clearing `public` still unlists the note. Verify: unit
+  tests — toggle absent when false, checkbox locked when
+  published for a publisher.
 
 ## 6. Frontend — sharing UI
 

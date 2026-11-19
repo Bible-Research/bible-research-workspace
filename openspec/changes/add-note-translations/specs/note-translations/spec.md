@@ -35,9 +35,10 @@ user's profile, or the UI locale.
 A note SHALL have at most one translation entry per target
 language, each carrying translated text, a `status` of
 `pending`, `ready`, `failed`, or `source`, the engine that
-produced it, and an error code when failed. The entry for the
-detected source language SHALL hold the original text with
-`status` `source`.
+produced it, and an error code when failed. The detected
+source language SHALL also get a `source` entry — a language
+slot whose text field stays empty, because the original is
+served from the note's own `note_text` rather than duplicated.
 
 #### Scenario: Translation targets created on write
 
@@ -45,8 +46,7 @@ detected source language SHALL hold the original text with
 - **THEN** one translation entry exists per configured target
   language, and a single entry for the detected source
   language — coinciding with the target entry when the source
-  is itself a configured target — holds the original text
-  marked `source`
+  is itself a configured target — is marked `source`
 
 #### Scenario: Failed translation keeps status and error
 
@@ -141,8 +141,10 @@ responses — SHALL include `source_language` and a
 ### Requirement: Translated serving on note detail
 
 `GET /api/v1/notes/<id>/?lang=<code>` SHALL return `note_text`
-in the requested language when a `ready` or `source` entry
-exists. Otherwise `note_text` MUST be returned unchanged —
+in the requested language when a `ready` entry exists, or the
+original `note_text` when the language matches the note's
+`source_language` (its `source` entry carries no text of its
+own). Otherwise `note_text` MUST be returned unchanged —
 the request MUST NOT fail.
 
 #### Scenario: Ready translation served
@@ -167,9 +169,10 @@ unchanged-text fallback per note.
 #### Scenario: Page rendered in reader language
 
 - **WHEN** a caller lists notes with `?lang=`
-- **THEN** each note with a `ready` or `source` entry for that
-  language returns translated `note_text`, and the rest return
-  their original text
+- **THEN** each note with a `ready` entry for that language
+  returns the translation's text as `note_text`, each note
+  whose `source_language` matches returns its original text,
+  and the rest return their original text
 
 #### Scenario: Anonymous reader sees translated public notes
 

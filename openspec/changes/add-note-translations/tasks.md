@@ -6,7 +6,8 @@
   `max_length=10`, blank) and the `NoteTranslation` model to
   `annotations/models.py` — `id` CharField PK prefixed `NTR`
   (uuid suffix, matching sibling model conventions), `note` FK
-  (`related_name='translations'`, CASCADE), `language`, `text`,
+  (`related_name='translations'`, CASCADE), `language`, `text`
+  (translated TipTap JSON; EMPTY on `source` rows),
   `status` (pending/ready/failed/source),
   `source_hash` (sha256, 64 chars), `engine`, `error`,
   `author_verified`, `verified_at`, timestamps,
@@ -48,11 +49,12 @@
   `id_token.verify_oauth2_token` + token-email check against
   `TASKS_INVOKER_SA_EMAIL`): stale `source_hash` → 204 no-op;
   detect + store `source_language`; ALWAYS upsert a `source`
-  row holding the original text for the detected language
-  (even when it is not a configured target — a `ru` source
-  under `['en','lv']` keeps its uniform row) plus one row per
-  configured target (`target == source` reuses that row);
-  stamp each with the `engine` actually used; reset
+  row for the detected language with EMPTY `text` — a
+  language-slot/metadata anchor, the original is served from
+  `note_text` (even when it is not a configured target — a
+  `ru` source under `['en','lv']` keeps its uniform row) plus
+  one row per configured target (`target == source` reuses
+  that row); stamp each with the `engine` actually used; reset
   `author_verified=False`/`verified_at=NULL` on every write;
   failure → row `failed` + non-2xx for retry; verify tests
   cover 401 on bad/missing OIDC and the stale-hash no-op

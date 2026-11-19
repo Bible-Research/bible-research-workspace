@@ -88,12 +88,20 @@ Separate `Note` rows per language were rejected too: they
 pollute `unique_tag_position_per_tag`, duplicate verse/comment
 links, and break "edit once".
 
-### D2: `status='source'` row stores the original text
+### D2: `status='source'` row marks the original — no text copy
 
-The detected source language gets a row holding the original
-doc with `status='source'`, so every language a reader can
-pick has a uniform row — no special-casing in the serializer
-or the frontend switcher.
+The detected source language gets a `source` row with EMPTY
+`text`: a language slot and metadata anchor (status, hash,
+and — for `add-note-tts` — the home of source-language audio
+fields) so every pickable language is a uniform entry in
+`translations`. The original itself is served from
+`Note.note_text`. Copying it into the row was rejected: it
+would double the table's text storage and introduce a
+staleness footgun — a copied "original" could serve pre-edit
+text between a write and the worker run — while the serving
+path already special-cases `language == source_language` and
+the "Show original" peek reads `note_text` from the payload
+with zero fetch.
 
 ### D3: Eager pipeline via Cloud Tasks + OIDC worker
 
@@ -157,7 +165,9 @@ retranslating everything, and the UI can badge quality tiers.
 
 `GET /api/v1/notes/<id>/?lang=` and `GET /api/v1/notes/?lang=`
 both swap
-`note_text` when a `ready`/`source` row exists — the list swap
+`note_text` to the row's `text` on a `ready` row — a `source`
+row's `text` stays empty (D2), so `?lang=<source_language>`
+serves the original `note_text` as-is — the list swap
 is a page-wide `translations` prefetch (one indexed query) so
 the notes view renders uniformly in one request. A note lacking
 the row emits `note_text` unchanged with metadata intact —

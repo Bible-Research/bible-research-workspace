@@ -39,9 +39,11 @@ detected source language SHALL hold the original text with
 
 #### Scenario: Translation targets created on write
 
-- **WHEN** a note is created
+- **WHEN** a note is created and its translation run completes
 - **THEN** one translation entry exists per configured target
-  language, with the source-language entry marked `source`
+  language, and an entry for the detected source language —
+  even when it is not a configured target — holds the original
+  text marked `source`
 
 #### Scenario: Failed translation keeps status and error
 
@@ -52,13 +54,16 @@ detected source language SHALL hold the original text with
 ### Requirement: Eager asynchronous translation on note writes
 
 Creating a note SHALL enqueue asynchronous translation into
-every configured target language, and the write response SHALL
-return before translation completes with `pending` metadata.
-Editing SHALL re-enqueue only when `note_text` changed.
+every configured target language; when asynchronous execution
+is configured (the production path) the write response SHALL
+return before translation completes with `pending` metadata,
+while a synchronous local-dev fallback MAY complete inside the
+request. Editing SHALL re-enqueue only when `note_text`
+changed.
 
 #### Scenario: Create returns pending translations
 
-- **WHEN** a note is created
+- **WHEN** a note is created under asynchronous execution
 - **THEN** the response already lists the target languages as
   `pending` so clients can render a translating state
 
@@ -161,16 +166,25 @@ unchanged-text fallback per note.
   language returns translated `note_text`, and the rest return
   their original text
 
+#### Scenario: Anonymous reader sees translated public notes
+
+- **WHEN** an anonymous caller requests an accessible public
+  note or note list with `?lang=`
+- **THEN** translated text and `translations` metadata are
+  returned without authentication, so the language switcher is
+  usable by anonymous viewers of public notes
+
 ### Requirement: Author verification of translations
 
 The note's owner SHALL be able to mark a `ready` translation
 as author-verified and to revoke that mark, via
 `POST`/`DELETE` on
 `/api/v1/notes/<id>/translations/<lang>/verify/`. Non-owners
-and missing entries SHALL get 404; `pending` or `failed`
-entries SHALL get 409 with `error_code`
-`translation_not_ready`. Fresh translation output MUST reset
-verification.
+and missing entries SHALL get 404; `pending`, `failed`, or
+`source` entries SHALL get 409 with `error_code`
+`translation_not_ready` — a `source` entry is the author's own
+text, so there is nothing to verify. Fresh translation output
+MUST reset verification.
 
 #### Scenario: Owner verifies a ready translation
 

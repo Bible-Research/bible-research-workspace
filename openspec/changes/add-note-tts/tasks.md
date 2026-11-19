@@ -64,13 +64,19 @@
 - [ ] 3.4 backend: Update `bible_research/DEVELOPER_GUIDE.md`
   and `AGENTS.md` with the audio endpoint, fields, voices
   registry, and bucket; verify docs match the code
+- [ ] 3.5 backend: Add a monthly TTS usage counter via the
+  existing `increment_monthly_usage` pattern
+  (`fileset_id='note-tts'`) and log billed chars per
+  synthesis; verify a unit test asserts the counter
+  increments
 
 ## 4. Frontend: types, API, mini-player
 
 - [ ] 4.1 frontend: Add `has_audio` to `NoteTranslationMeta`
   in `src/types.ts` and `requestNoteAudio(noteId, lang)` to
   `src/api/notes.ts` returning `{audio_url,
-  duration_seconds}`; verify `tsc` and `npm run lint` pass
+  duration_seconds, expires_in}`; verify `tsc` and
+  `npm run lint` pass
 - [ ] 4.2 frontend: Add a per-language mini play/pause
   `ActionIcon` on `NoteCard` that requests the signed URL for
   the currently displayed language and plays it via Howler

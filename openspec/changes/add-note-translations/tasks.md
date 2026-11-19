@@ -12,7 +12,7 @@
   `UniqueConstraint(note, language)`; verify no line exceeds
   79 chars and `python manage.py check` passes
 - [ ] 1.2 backend: Hand-write the `annotations` migration for
-  both changes modeled on the latest existing migration;
+  both model changes modeled on the latest existing migration;
   verify `dependencies` names the real latest migration and
   `python manage.py check` passes (never run
   makemigrations/migrate)
@@ -39,9 +39,12 @@
   `POST /api/v1/tasks/translate-note/` (`AllowAny` + OIDC
   `id_token.verify_oauth2_token` + token-email check against
   `TASKS_INVOKER_SA_EMAIL`): stale `source_hash` → 204 no-op;
-  detect + store `source_language`; translate per target
-  (target == source → `status='source'` copy); upsert rows
-  stamping the `engine` actually used; reset
+  detect + store `source_language`; ALWAYS upsert a `source`
+  row holding the original text for the detected language
+  (even when it is not a configured target — a `ru` source
+  under `['en','lv']` keeps its uniform row) plus one row per
+  configured target (`target == source` reuses that row);
+  stamp each with the `engine` actually used; reset
   `author_verified=False`/`verified_at=NULL` on every write;
   failure → row `failed` + non-2xx for retry; verify tests
   cover 401 on bad/missing OIDC and the stale-hash no-op
@@ -70,7 +73,7 @@
   `translation_not_ready` in the `error`/`error_code` shape,
   idempotent set/clear of `author_verified`/`verified_at`;
   verify tests cover all four outcomes
-- [ ] 3.3 backend: Optional owner-only `retranslate` action
+- [ ] 3.3 backend: Owner-only `retranslate` action
   re-enqueueing the task for `failed` rows (the frontend retry
   path); verify it re-marks rows `pending` and enqueues
 - [ ] 3.4 backend: Update `bible_research/DEVELOPER_GUIDE.md`
@@ -97,6 +100,11 @@
   agent, `roles/cloudtasks.enqueuer` and
   `roles/cloudtranslate.user` on the appspot SA; verify
   `terraform plan` (user runs `apply`)
+- [ ] 4.4 backend: Optional `translate_notes` management
+  command (`--user`, `--all`) to backfill existing notes —
+  reuse the worker's translate path, skip notes already
+  `ready` for all targets; verify `--user` scopes to that
+  user's notes only
 
 ## 5. Frontend: types, API, store
 
@@ -136,7 +144,12 @@
   hitting the retranslate endpoint), and a "translations
   updating" hint after `editNote`; verify tests cover all
   three states and no silent source-text fallback on `failed`
-- [ ] 6.5 frontend: Update `DEVELOPER_GUIDE.md` with the
+- [ ] 6.5 frontend: Schedule a one-shot delayed refetch of the
+  note (or notes list) after `addTagNote`/`editNote` returns
+  `pending` translations so `Translating…` flips to `ready`
+  without a page reload; verify the refetch fires once and
+  stops after `ready`/`failed`
+- [ ] 6.6 frontend: Update `DEVELOPER_GUIDE.md` with the
   switcher, default-language rules, peek, and verification UX;
   verify docs match shipped UI
 

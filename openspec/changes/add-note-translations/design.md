@@ -121,12 +121,18 @@ was rejected: ~5–8 s per note on one F1 instance.
 Local dev (`not IS_GCP_ENVIRONMENT`): the enqueue helper calls
 the worker function inline — zero-infra fallback, no emulator.
 
-### D4: `source_hash` idempotency
+### D4: `source_hash` idempotency + locked write
 
 The task body carries `sha256(note_text)`; the worker compares
 it to the current hash and 204-no-ops on mismatch — an
 edit-during-flight leaves the newest text's run authoritative
-(last writer wins).
+(last writer wins). The check ALSO runs inside the write
+transaction under `select_for_update` on the note row: a run
+that validated, then was superseded mid-translation (~1–2 s
+window), sees the newer hash at commit time and aborts
+instead of overwriting fresher rows. Two runs racing on the
+SAME hash produce identical output, so concurrent upserts are
+harmless.
 
 ### D5: Structural TipDoc translation, one API call
 

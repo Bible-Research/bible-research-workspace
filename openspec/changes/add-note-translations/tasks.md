@@ -48,7 +48,10 @@
   `POST /api/v1/tasks/translate-note/` (`AllowAny` + OIDC
   `id_token.verify_oauth2_token` + token-email check against
   `TASKS_INVOKER_SA_EMAIL`): stale `source_hash` → 204 no-op;
-  detect + store `source_language`; ALWAYS upsert a `source`
+  re-check the hash inside the write transaction under
+  `select_for_update` on the note so a run superseded
+  mid-translation aborts rather than overwriting fresher
+  rows; detect + store `source_language`; ALWAYS upsert a `source`
   row for the detected language with EMPTY `text` — a
   language-slot/metadata anchor, the original is served from
   `note_text` (even when it is not a configured target — a

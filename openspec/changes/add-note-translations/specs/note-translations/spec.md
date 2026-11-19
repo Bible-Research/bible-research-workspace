@@ -95,6 +95,13 @@ SHALL be retried with backoff up to a bounded attempt count.
 - **THEN** it writes nothing and the newer text's translations
   are used
 
+#### Scenario: Overlapping runs keep the newest text
+
+- **WHEN** two translation runs for different text versions
+  overlap and the older-text run finishes last
+- **THEN** the stored entries still reflect the newest note
+  text — write-order never determines the outcome
+
 #### Scenario: Transient failure retries
 
 - **WHEN** a translation run fails transiently

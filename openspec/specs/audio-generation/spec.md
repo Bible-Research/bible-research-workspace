@@ -11,8 +11,10 @@ local state.
 ### Requirement: Unbounded local generation run
 `generate_edge_audio` SHALL accept an `--until-done` flag that
 removes the per-run chapter and wall-clock caps so a single
-invocation drains the entire pending worklist. Without the
-flag, the existing capped defaults SHALL be unchanged.
+invocation drains the entire pending worklist (local mode
+only — the flag SHALL be ignored in GCS mode so cloud runs
+stay inside the job timeout). Without the flag, the existing
+capped defaults SHALL be unchanged.
 
 #### Scenario: Single command drains the worklist
 - **WHEN** the operator runs `generate_edge_audio

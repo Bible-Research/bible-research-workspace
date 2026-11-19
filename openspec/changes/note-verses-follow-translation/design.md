@@ -32,13 +32,18 @@ ordering.
 
 ### D1 — Overlay, don't replace
 
-`NoteVerseList` maps `note.verses` to `VerseRef[]`, feeds them
-through `useVerseTexts` with `useNoteRefFilesetId()`, and
-overlays the returned `text` onto each rendered verse keyed by
-`(bookId, chapter, verse)`. Rendering always starts from
-stored text; the fetched text swaps in when it arrives. Folded
-and expanded views share the same overlay source so both stay
-consistent.
+`NoteVerseList` maps `note.verses` to `VerseRef[]` — memoized
+(`useMemo` on `note.verses`), or the new array identity every
+render refires the hook's effect into a fetch loop — feeds
+them through `useVerseTexts`, and overlays the returned
+`text` onto each rendered verse keyed by `(bookId, chapter,
+verse)`. The hook receives the hook-resolved concrete id
+(`useNoteRefFilesetId()` → `resolveTextFileset` → ESV
+fallback), not the raw pin, so an unresolvable pin degrades
+to ESV text instead of a wasted request. Rendering always
+starts from stored text; the fetched text swaps in when it
+arrives. Folded and expanded views share the same overlay
+source so both stay consistent.
 
 ### D2 — Book-name keying via USFM
 
@@ -55,10 +60,16 @@ unchanged for the genuinely-broken upstream case.
 
 ## Risks / Trade-offs
 
-- Extra fetch per rendered card — bounded: `useVerseTexts`
-  batches per book/chapter, `getVersesInChapter` is
-  cache-first, and cards already re-render lazily via the
-  intersection observer.
+- Extra fetch per rendered card — real cost: cards mount
+  eagerly (the intersection observer only gates the images
+  fetch) and `getVersesInChapter` is cache-first but has NO
+  in-flight dedup, so a 25-card tag page can burst ~25
+  chapter requests on mount. Mitigation: drive
+  `useVerseTexts`' `enabled` flag from the card's existing
+  visibility latch so off-screen cards don't fire, and gate
+  the drag-overlay's second mount (`__overlay` scope) out
+  entirely. In-flight request dedup is a possible follow-up,
+  not required here.
 - Stale-text flash: stored translation shows until the fetch
   lands — accepted, per the spec's fallback requirement.
 - Copyright caching cap is unchanged — verses go through the

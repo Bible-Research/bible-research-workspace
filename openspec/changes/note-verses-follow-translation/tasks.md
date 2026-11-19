@@ -9,11 +9,16 @@ Depends on `add-note-ref-translation-setting` (needs
 ## 1. Overlay re-resolved verse text on note cards
 
 - [ ] 1.1 In `NoteVerseList`, map `note.verses` to `VerseRef[]`
-  via `toUsfmCode` (books may be display names), feed them to
-  `useVerseTexts` with `useNoteRefFilesetId()`, and overlay
-  returned text per `(bookId, chapter, verse)` on both folded
-  and expanded rendering — verify a NoteVerseList test shows
-  pinned-translation text after the fetch resolves
+  via `toUsfmCode` inside `useMemo` (a new array per render
+  would refire the hook into a fetch loop), resolve
+  `useNoteRefFilesetId()` through `resolveTextFileset` to a
+  concrete id with the ESV fallback, and feed `useVerseTexts`
+  with `enabled` gated by the card's visibility latch (off
+  for the `__overlay` drag scope) — overlay returned text per
+  `(bookId, chapter, verse)` on both folded and expanded
+  rendering; verify a NoteVerseList test shows
+  pinned-translation text after the fetch resolves and that
+  off-screen/overlay cards issue no request
 - [ ] 1.2 Keep stored `v.text` as the rendered fallback while
   loading, offline, or failed (no error row replaces verses
   when stored text exists) — verify tests for the

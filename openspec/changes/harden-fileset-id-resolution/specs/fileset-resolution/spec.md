@@ -36,8 +36,10 @@ since raw provider fileset ids are routable.
 
 When the persisted text selection resolves as unresolvable,
 the reader SHALL recover to a valid selection — the
-locale-default text fileset — and tell the user, rather than
-showing an empty chapter or a client-input error.
+locale-default text fileset (a different value than the
+persisted one, so the reset actually takes effect) — and tell
+the user, rather than showing an empty chapter or a
+client-input error.
 
 #### Scenario: Drifted selection resets on load
 
@@ -52,6 +54,19 @@ showing an empty chapter or a client-input error.
 - **WHEN** the unresolvable selection has been reset
 - **THEN** no further resets or notifications fire until a
   new unresolvable value is stored
+
+### Requirement: Audio selections degrade the same way
+
+A stored audio id carrying the product form that matches no
+audio option SHALL resolve as unresolvable rather than being
+sent upstream verbatim — the same rule as for text ids.
+
+#### Scenario: Orphaned audio product id does not 400
+
+- **WHEN** the stored audio selection is `FOO:audio:1` and no
+  loaded translation owns it
+- **THEN** resolution reports "unresolvable" and no audio
+  request carries `FOO:audio:1`
 
 ### Requirement: Note-reference surfaces skip unresolvable ids
 

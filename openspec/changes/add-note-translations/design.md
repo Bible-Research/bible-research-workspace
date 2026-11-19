@@ -68,7 +68,8 @@ See proposal.md — Why. Key facts from investigation:
 
 ### D1: `NoteTranslation` child table, not a JSONField on Note
 
-`NoteTranslation(note FK related_name='translations' CASCADE,
+`NoteTranslation(id 'NTR'-prefixed CharField PK, note FK
+related_name='translations' CASCADE,
 language, text, status, source_hash, engine, error,
 author_verified, verified_at, created_at, updated_at)` with
 `UniqueConstraint(note, language)`, plus
@@ -199,7 +200,7 @@ counter in GCS reusing `increment_monthly_usage`
 
 - [TipTap schema drift: translated docs must round-trip
   `RichTextView`] → serializer/worker test with a real doc
-  fixture incl. `scriptureMention` marks.
+  fixture incl. `scriptureRef`/`mention` atom nodes.
 - [MT quality for theological Latvian is imperfect] →
   "Auto-translated" label + "Show original" everywhere +
   optional author verification tier.

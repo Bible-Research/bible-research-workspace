@@ -283,7 +283,10 @@ with an explicit retry affordance on `failed` (never silent
 fallback to source text) and a "Translating…" state on
 `pending`. Author-verified translations SHALL display a
 distinct "Verified by author" indicator visible to readers;
-only the author sees the verify action.
+only the author sees the verify action. Verification is a
+trust label only — it MUST NOT gate serving or display: a
+`ready` translation is shown to every reader whether or not
+the author has verified it.
 
 #### Scenario: Failed state offers retry
 
@@ -305,3 +308,11 @@ only the author sees the verify action.
   ready translation
 - **THEN** a "Verified by author" indicator replaces the plain
   auto-translated label for all viewers
+
+#### Scenario: Unverified translation still displays
+
+- **WHEN** a note has a `ready` translation its author has
+  not verified
+- **THEN** readers see the translated text with the plain
+  "Auto-translated" label — it is not hidden pending
+  verification

@@ -2,7 +2,7 @@
 
 ## 1. Backend — models and permission
 
-- [ ] 1.1 backend: Add `NoteShare`, `TagShare`
+- [x] 1.1 backend: Add `NoteShare`, `TagShare`
   (`include_descendants`), `SavedNote` models plus
   `Note.published`, `Tag.published`,
   `Note.copied_from` (`SET_NULL`),
@@ -11,13 +11,13 @@
   the `makemigrations` command to run (agents never run
   it). Verify: `python manage.py check` passes; migration
   file content reviewed by user.
-- [ ] 1.2 backend: Data migration (or management command)
+- [x] 1.2 backend: Data migration (or management command)
   backfilling `note_text_plain` from TipTap JSON for
   existing notes; plain-text extraction util shared with
   the serializer save path. Verify: unit test asserts
   JSON→text parity on a fixture with marks, paragraphs,
   and verse embeds.
-- [ ] 1.3 backend: Coordinate with the in-flight
+- [x] 1.3 backend: Coordinate with the in-flight
   `tag-tree-restructure` change — confirm
   `subtree_tag_ids` remains the subtree primitive
   `include_descendants` resolves through. Verify: grep
@@ -26,7 +26,7 @@
 
 ## 2. Backend — publishing gate and visibility
 
-- [ ] 2.1 backend: Enforce the publish gate on every
+- [x] 2.1 backend: Enforce the publish gate on every
   EFFECTIVE `published=true` write — note create/PATCH,
   `notes/bulk/` items, `Tag.published` inheritance, and
   the new tag `set-published` action (mirroring
@@ -37,16 +37,16 @@
   400s (incl. bulk + published-tag inheritance),
   publisher succeeds, `published∧¬public` unreachable,
   unpublish keeps `public=true`.
-- [ ] 2.2 backend: Add `can_publish` to `UserSerializer`
+- [x] 2.2 backend: Add `can_publish` to `UserSerializer`
   (`/me/`). Verify: test asserts the flag tracks
   `has_perm` for a group-granted and a plain user.
-- [ ] 2.3 backend: Extend `get_accessible_notes_qs` with
+- [x] 2.3 backend: Extend `get_accessible_notes_qs` with
   `Exists` subqueries for NoteShare and TagShare
   (subtree-aware via `subtree_tag_ids`); add read-only
   `author {id, username}` to `NoteSerializer`. Verify:
   tests cover sharee-visible private note, subtree grant,
   moved-out note 404, author populated.
-- [ ] 2.4 backend: `published`/`q` params on
+- [x] 2.4 backend: `published`/`q` params on
   `GET /notes/` — published-only feed ordered
   `-created_at` via `NotesPagination`, `icontains` on
   `note_text_plain`, anonymous-allowed,
@@ -58,7 +58,7 @@
 
 ## 3. Backend — share endpoints
 
-- [ ] 3.1 backend: `POST/DELETE /notes/<id>/share/` and
+- [x] 3.1 backend: `POST/DELETE /notes/<id>/share/` and
   `/tags/<id>/share/` (revoke via
   `…/share/<username>/`; `iexact` resolution,
   silent-200, self-share no-op, tag re-share UPSERTS
@@ -69,7 +69,7 @@
   tests — identical body on unknown username, recipient
   list owner-only, revoke → sharee 404, sharee share
   attempt 404, scope upsert.
-- [ ] 3.2 backend: `GET /notes/shared-with-me/` returning
+- [x] 3.2 backend: `GET /notes/shared-with-me/` returning
   `{notes, tag_shares}` (direct grants + shared-tag
   notes + the tag grants themselves with name and
   `include_descendants`); extend `GET /tags/<id>/` to
@@ -80,14 +80,14 @@
 
 ## 4. Backend — bookmarks and copy
 
-- [ ] 4.1 backend: `POST/DELETE /notes/<id>/bookmark/`
+- [x] 4.1 backend: `POST/DELETE /notes/<id>/bookmark/`
   (idempotent repeat) + `GET /notes/bookmarks/` with
   per-row `available` annotation from the same
   visibility `Exists` expression; reject own (400) and
   inaccessible (404) targets. Verify: tests —
   bookmark→unavailable transition, repeat bookmark
   single row, deleted note cascades the row away.
-- [ ] 4.2 backend: `POST /notes/<id>/copy/` and
+- [x] 4.2 backend: `POST /notes/<id>/copy/` and
   `POST /tags/<id>/copy/` (>100 accessible notes → 400,
   atomic, fresh `tag_position`s appended, `copied_from`
   SET_NULL serialized owner-only, `note_text_plain`
@@ -95,19 +95,19 @@
   Verify: tests — fork payload, partial tag copy
   respects visibility, own-note copy 400, published copy
   hides `copied_from` from anonymous readers.
-- [ ] 4.3 backend: Update DEVELOPER_GUIDE.md + AGENTS.md
+- [x] 4.3 backend: Update DEVELOPER_GUIDE.md + AGENTS.md
   endpoint/model docs for all of groups 2–4. Verify: doc
   diffs cover every new route and flag.
 
 ## 5. Frontend — api layer and auth
 
-- [ ] 5.1 frontend: `src/api/sharing.ts`,
+- [x] 5.1 frontend: `src/api/sharing.ts`,
   `bookmarks.ts`, `copy` functions; `Note`/`User` types
   gain `author`, `published`, `can_publish`;
   `sharedWithMe`/`bookmarks`/`exploreNotes(published,q)`
   fetches. Verify: `npm run build` typechecks; MSW
   handlers added.
-- [ ] 5.2 frontend: authStore surfaces `can_publish`;
+- [x] 5.2 frontend: authStore surfaces `can_publish`;
   `published` plumbed through NoteForm's
   submit/autosave/draft/flush chain and
   `addTagNote`/`editNote` signatures (mirrors the
@@ -120,23 +120,23 @@
 
 ## 6. Frontend — sharing UI
 
-- [ ] 6.1 frontend: Share dialog on owned notes/tags —
+- [x] 6.1 frontend: Share dialog on owned notes/tags —
   free-text username with honest copy ("if that username
   exists…"), `include_descendants` toggle + "future
   notes are shared too" hint on tags, recipient list
   refreshing after submit, revoke. Verify: vitest covers
   submit, recipient rendering, revoke.
-- [ ] 6.2 frontend: "Shared with me" section (read-only
+- [x] 6.2 frontend: "Shared with me" section (read-only
   tag nodes from `tag_shares`, `is_owner=false` cards
   hide edit, show author) + empty state. Verify:
   route/component test renders shared notes and a shared
   empty tag without edit affordances.
-- [ ] 6.3 frontend: Explore route — published feed +
+- [x] 6.3 frontend: Explore route — published feed +
   search box (`q` debounce), note cards with author,
   paginated, empty state; MSW handlers for the
   anonymous feed/search. Verify: test renders feed +
   search call params.
-- [ ] 6.4 frontend: Navigation entries for Explore /
+- [x] 6.4 frontend: Navigation entries for Explore /
   Shared-with-me / Bookmarks in `MainMenu` (auth-optional
   vs auth-required items matching its existing pattern —
   Explore is anonymous-safe). Verify: menu test shows
@@ -144,18 +144,18 @@
 
 ## 7. Frontend — bookmarks and copy
 
-- [ ] 7.1 frontend: Save/bookmark + "Copy to my notes"
+- [x] 7.1 frontend: Save/bookmark + "Copy to my notes"
   actions on NoteDetailRoute and note cards for non-owned
   accessible notes — replaced by a "Log in to save" link
   (return path) for anonymous readers; bookmarks list
   route with unavailable-state rows + remove + empty
   state. Verify: tests — bookmark flow, unavailable row,
   copy target-tag picker, anonymous CTA.
-- [ ] 7.2 frontend: Author attribution on note cards in
+- [x] 7.2 frontend: Author attribution on note cards in
   shared/public contexts; i18n strings (en + lv + ru) for
   all new UI. Verify: lint clean, `npm test` for touched
   files green.
-- [ ] 7.3 frontend: Update DEVELOPER_GUIDE.md/AGENTS.md
+- [x] 7.3 frontend: Update DEVELOPER_GUIDE.md/AGENTS.md
   "Known gaps"/behavior notes. Verify: doc diff covers
   new routes and the sharing model.
 

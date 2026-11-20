@@ -326,7 +326,10 @@ live at the system level — never run `openspec init` inside
   `~/.config/devin/AGENTS.md`).
 - `openspec/specs/` holds capability specs (current behavior as
   source of truth): `provider-routing`, `error-contract`,
-  `auth` — grow as real changes touch new areas.
+  `auth`, `book-canon`, `note-translations`, `bible-search`,
+  `bible-selector`, `bible-structure`, `getting-started`,
+  `localized-book-display`, `translation-selector`,
+  `ui-localization` — grows as real changes touch new areas.
 - `openspec/config.yaml` carries project context; change
   `tasks.md` items MUST be prefixed `backend:` /
   `frontend:` / `both:` to name the target repo.

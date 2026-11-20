@@ -211,7 +211,8 @@ auto-retries on non-2xx):
    `source_language_code` returns `detected_language_code`; or call
    `detect_language` once and cache on the note.
 3. For each target in `NOTE_TARGET_LANGUAGES` (`['en','lv']`):
-   - target == source → copy original text, `status='source'`.
+   - target == source → mark `status='source'` (text stays
+     empty — served from `note_text`; as built).
    - else translate the TipTap doc *structurally*: walk the JSON
      tree, collect `text` values of `type:'text'` nodes, send them
      in ONE `translate_text` call (`contents=[…]` batch), splice

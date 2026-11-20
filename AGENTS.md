@@ -91,8 +91,9 @@ fileset model, auth quirks, caching, error contracts).
   solo-promote the one branch instead (staging merge,
   then a `main` PR from the same head — valid only
   while the head never absorbed an `origin/staging`
-  merge; see `reactive-bible/AGENTS.md` "Merge straight
-  to main"). The repo's `Promote to main`
+  merge; `staging` is NOT reset by the solo path — see
+  `reactive-bible/AGENTS.md` "Merge straight to main").
+  The repo's `Promote to main`
   `workflow_dispatch` action automates the whole
   promotion + reset (including conflict resolution from
   staging's own integration state) — run it from the

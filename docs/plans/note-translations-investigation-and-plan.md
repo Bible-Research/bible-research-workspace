@@ -1,7 +1,10 @@
 # Note Translations + Note TTS — Investigation & Plan
 
-**Status:** not implemented (investigation + plan only; no
-`NoteTranslation` model exists in `bible_research`).
+**Status:** partial — note translations shipped
+(bible_research#151, worker fix #155, backfill #157, frontend
+#331; OpenSpec change archived as
+`openspec/changes/archive/2026-11-19-add-note-translations/`);
+note TTS is still open as `openspec/changes/add-note-tts/`.
 
 Date: 2026-10-09. Investigates how to auto-translate notes into
 multiple languages and generate per-language audio via Cloud TTS.
@@ -139,20 +142,45 @@ class NoteTranslation(models.Model):
     audio_gcs_uri = CharField(max_length=1024, blank=True)
     audio_duration_seconds = FloatField(null=True)
     source_hash = CharField(max_length=64)       # sha256(note_text)
-    error = CharField(max_length=255, blank=True)
+    engine = CharField(max_length=40, blank=True) # provenance
+    error = CharField(max_length=100, blank=True)
+    author_verified = BooleanField(default=False)
+    verified_at = DateTimeField(null=True, blank=True)
     created_at / updated_at
     class Meta: UniqueConstraint('note', 'language')
 ```
 
 Rationale:
 
+- `Note.source_language` is the per-note identifying language —
+  the corpus is MIXED (one user writes EN, another LV, one user
+  both), so detection runs per note in the worker and is stored
+  here, not inferred from the user or the UI locale. This is the
+  "which language is the original" answer — no extra field
+  needed beyond it.
 - `status='source'` row = the detected source language; `text`
-  holds the original doc — every language a reader can pick has a
-  uniform row, no special-casing in the serializer.
+  stays EMPTY — the original is served from `Note.note_text`
+  (as built: the row is a language slot and metadata anchor,
+  not a second copy of the doc). Every language a reader can
+  pick has a uniform row, no special-casing in the serializer.
 - `source_hash` makes the Cloud Task idempotent: if the task
   arrives after a newer edit, hashes differ → task no-ops.
 - `audio_*` on the translation row keeps text and audio lifecycles
   independent (hybrid: text eager, audio lazy).
+- `author_verified`/`verified_at` record that the note's author
+  reviewed a machine translation and approved it as correct.
+  Per-language and per-row: verifying `en` says nothing about `ru`.
+  The `status='source'` row needs no verification — it IS the
+  author's own text; keep the flag but never surface it in the UI.
+- `engine` stamps WHICH service/model produced the row:
+  `'google-nmt'` (Cloud Translation v3 `general/nmt`, the MVP),
+  `'google-llm'` (v3 `translation_llm` model where the language
+  pair supports it), `'gemini-<model>'` for the quality-upgrade
+  path below. Provenance matters for two reasons: (1) a later
+  engine upgrade can find-and-retranslate only the rows built
+  by the old engine instead of nuking everything; (2) the UI
+  can badge quality tiers if we ever mix engines (e.g. "Auto-
+  translated (advanced model)").
 - Migration needed: `makemigrations annotations` + `migrate`
   (user runs — workspace rule forbids the agent running it).
 
@@ -171,7 +199,7 @@ call `translation_tasks.enqueue(note.id, source_hash)`:
    Local dev (`not IS_GCP_ENVIRONMENT`): run the worker function
    inline instead — zero-infra fallback.
 
-Worker endpoint (`annotations/views.py` or new `tasks.py`,
+Worker endpoint (`annotations/views_tasks.py` as built,
 `AllowAny` + OIDC verification — verify
 `Authorization: Bearer <oidc>` via
 `google.oauth2.id_token.verify_oauth2_token` and check
@@ -183,7 +211,8 @@ auto-retries on non-2xx):
    `source_language_code` returns `detected_language_code`; or call
    `detect_language` once and cache on the note.
 3. For each target in `NOTE_TARGET_LANGUAGES` (`['en','lv']`):
-   - target == source → copy original text, `status='source'`.
+   - target == source → mark `status='source'` (text stays
+     empty — served from `note_text`; as built).
    - else translate the TipTap doc *structurally*: walk the JSON
      tree, collect `text` values of `type:'text'` nodes, send them
      in ONE `translate_text` call (`contents=[…]` batch), splice
@@ -192,7 +221,14 @@ auto-retries on non-2xx):
      plain-text call.
    - failure → row `status='failed'`, `error=<code>`; raise →
      Cloud Tasks retries (exponential backoff, max 5).
-4. Persist rows; log chars billed per language.
+   - every fresh translation write resets `author_verified=False`,
+     `verified_at=NULL` — a re-translated note contains NEW
+     machine output the author has not reviewed; verification
+     must never carry over to text the author never saw.
+4. Persist rows — each row stamps `engine` with the configured
+   `NOTE_TRANSLATION_ENGINE` value actually used (not just the
+   current setting — the value the call ran with); log chars
+   billed per language.
 
 Why structural translation, not HTML: `note_text` is TipTap JSON,
 not HTML. Translating node-by-node preserves the doc schema and
@@ -245,23 +281,50 @@ a 30-day bucket lifecycle rule is the safety net.
 
 ```json
 "source_language": "lv",
+"served_language": "lv",
 "translations": [
-  {"language": "lv", "status": "source", "has_audio": false},
-  {"language": "en", "status": "ready",  "has_audio": true}
+  {"language": "lv", "status": "source", "has_audio": false,
+   "verified": false, "engine": null},
+  {"language": "en", "status": "ready",  "has_audio": true,
+   "verified": true,  "engine": "google-nmt"}
 ]
 ```
 
-Metadata only in list responses — translated text is fetched on
-demand via `GET /api/v1/notes/<id>/?lang=en`, which swaps
-`note_text` with the translation's `text` (or a dedicated
-`GET /notes/<id>/translations/<lang>/` — either is fine; `?lang=`
-is less plumbing). Keeps list payloads small; matches the
-cache-first frontend style.
+List responses carry the `translations` metadata; `GET
+/api/v1/notes/<id>/?lang=en` swaps `note_text` with the
+translation's `text`. The same `?lang=` param ALSO applies to
+the LIST endpoint — `GET /api/v1/notes/?lang=lv` swaps
+`note_text` for the whole page server-side via a `translations`
+prefetch (one indexed query, same negligible-cost argument as
+the data-model section). This is what lets the notes view
+render every card in the reader's language in ONE request —
+without it, a mixed-language list would need N per-note fetches
+to display uniformly. Fallback when a note lacks a `ready`/`source`
+row for `?lang=`: emit `note_text` unchanged with the
+`translations` metadata intact (card shows the
+"Translating…"/`failed` state) — never 404 the whole note.
 
 On create the response immediately includes `translations` with
 `status='pending'` so the UI can render a "Translating…" state
 without polling hacks. Frontend refetches the note once after a
 short delay (or the notes list already refreshes on navigation).
+
+Verification endpoint:
+
+`POST /api/v1/notes/<note_id>/translations/<lang>/verify/` —
+**owner-only** (`IsAuthenticated` + `note.user == request.user`;
+non-owners get 404, same as private-note access, so the endpoint
+leaks nothing about foreign notes). Idempotent set: marks the row
+`author_verified=True`, `verified_at=now`; returns the updated
+translation meta. A matching `DELETE` on the same URL revokes
+verification (`author_verified=False`, `verified_at=NULL`) for
+the "I approved this by mistake" case. 404 when the note or the
+`<lang>` row doesn't exist; 409 `translation_not_ready` if the
+row is `pending`/`failed`/`source` — a `source` row is the
+author's own text, there is nothing to verify.
+Never verify via PATCH on the note itself: verification is a
+per-language action on a child row, not a note update (and a
+note PATCH would wrongly reset `source_hash` flows).
 
 ### 5. Infra changes (terraform)
 
@@ -279,10 +342,14 @@ short delay (or the notes list already refreshes on navigation).
 - appspot SA gets `roles/cloudtranslate.user` (v3 API).
 - `requirements.txt` += `google-cloud-translate`,
   `google-cloud-tasks` (pin ≥7-day-old releases per rules).
-- settings: `NOTE_TARGET_LANGUAGES`, `NOTE_TTS_VOICES`,
-  `NOTE_TTS_MAX_CHARS`, `NOTE_AUDIO_BUCKET_NAME`,
-  `TASKS_INVOKER_SA_EMAIL`, `TASK_QUEUE_ID`, `APP_BASE_URL` —
-  same `_audio_settings_source` env/config.yaml pattern.
+- settings: `NOTE_TARGET_LANGUAGES`, `NOTE_TRANSLATION_ENGINE`
+  (`'google-nmt'` default; `'google-llm'`/`'gemini-…'` later —
+  a config flip upgrades quality with zero code changes, and
+  `engine` provenance lets a backfill target only stale-engine
+  rows), `NOTE_TTS_VOICES`, `NOTE_TTS_MAX_CHARS`,
+  `NOTE_AUDIO_BUCKET_NAME`, `TASKS_INVOKER_SA_EMAIL`,
+  `TASK_QUEUE_ID`, `APP_BASE_URL` — same
+  `_audio_settings_source` env/config.yaml pattern.
 
 ### 6. Frontend
 
@@ -292,11 +359,35 @@ short delay (or the notes list already refreshes on navigation).
   lang)`.
 - `NoteCard`:
   - SegmentedControl (EN|LV) next to the heading when
-    `translations.length > 1`; default = `source_language`.
+    `translations.length > 1`; default = the reader's preferred
+    note language (persisted store slice, seeded from
+    `uiLanguage` — an LV-UI user sees LV notes by default),
+    falling back to `source_language` when no `ready`/`source`
+    row exists for it. With a mixed-language corpus this means
+    card 1 may show its `status='source'` LV row while card 2
+    shows an `en→lv` translation — both render identically.
   - Switching fetches `?lang=` text, caches in-memory (small —
     no localStorage needed; a `Map` in a store slice is fine).
   - "Auto-translated" caption + original-language chip for trust;
     `<Box lang={code}>` on the text container (a11y/SEO).
+  - "Show original" button on every non-source view: a one-tap
+    inline reveal (eye icon next to the "Auto-translated"
+    caption) that swaps the rendered body to the note's original
+    `note_text` — already in the payload, so zero extra fetch —
+    and toggles back on second tap. It is a PEEK, not a language
+    switch: the SegmentedControl selection stays on the
+    translation, so audio/verify actions still target it and the
+    stored preferred language is untouched. Label the revealed
+    text "Original (<source_language>)".
+  - Verification affordance (author only): while viewing a
+    non-source language they own, a subtle "Mark as verified"
+    action (check icon / menu item) on the card calls the verify
+    endpoint; on success the caption flips to a "Verified by
+    author" chip (distinct color from the plain "Auto-translated"
+    gray). Readers of public notes see the same chip — it is the
+    trust signal that a human reviewed the MT. Verified rows can
+    be un-verified from the same menu. The action is hidden for
+    `status='source'` and for viewers who don't own the note.
   - Play button per selected language → `requestNoteAudio` →
     signed URL into Howler (short clips: a dedicated mini
     play/pause `ActionIcon` is enough; reserve the full
@@ -319,21 +410,33 @@ short delay (or the notes list already refreshes on navigation).
    verse selection intact.
 2. **Persist the reader's preferred note language** in the Zustand
    store (persisted slice) so returning to a note re-opens the
-   last-picked language; default to UI/browser language
-   (`navigator.language`) for first-time viewers of public notes.
+   last-picked language; default to the UI language setting
+   (`uiLanguage`, seeded from `navigator.language`) — so an LV-UI
+   user's whole notes view loads with `?lang=lv` and reads
+   Latvian top to bottom, per-card switcher notwithstanding.
 3. **Public-note win**: translations make `public=true` notes
    shareable across the EN/LV audience — surface the language
    switcher for anonymous viewers too (endpoint already allows
    public notes).
 4. **Trust signals**: always label machine output ("Auto-
    translated"), offer "Show original" prominently — MT of
-   theological nuance can mislead.
+   theological nuance can mislead. The original-view affordance
+   is a dedicated button on the card (inline peek, not a
+   language switch — see NoteCard bullets), present for every
+   viewer of a translated note, not just the author. Author
+   verification adds a second tier: "Verified by author" tells
+   readers a human signed off on this language, which matters
+   for public notes shared across the EN/LV audience.
 5. **Inline mini-player, not the floating player**: note audio is
    10–60 s; a play/pause icon with a thin progress bar on the card
    is lighter than hijacking the chapter AudioPlayer.
 6. **Edit warning**: when the source text changes, translations
    refresh async — a small "translations updating" chip avoids the
-   "my edit didn't propagate" confusion.
+   "my edit didn't propagate" confusion. The same edit also
+   silently resets prior verifications (fresh MT text is
+   unreviewed by definition), so verified chips disappear until
+   the author re-approves the new output — worth a one-line note
+   in the chip tooltip.
 7. **Comment translations later**: the same `NoteTranslation`
    pattern applies to `Comment` — design the service
    language-agnostic (`translate_texts(texts, source, targets)`)
@@ -399,16 +502,18 @@ short delay (or the notes list already refreshes on navigation).
 ## File touch-list
 
 Backend: `annotations/models.py` (NoteTranslation,
-source_language), `annotations/serializers.py` (translations
-meta, `?lang=`), `annotations/views.py` (audio endpoint +
-retranslate), new `annotations/services/translation_service.py`,
+source_language, author_verified), `annotations/serializers.py`
+(translations meta incl. `verified`, `?lang=`),
+`annotations/views.py` (audio endpoint + verify + retranslate),
+new `annotations/services/translation_service.py`,
 `annotations/services/note_tts.py`,
 `annotations/services/tiptap_text.py`,
-`annotations/services/tasks.py` (enqueue + OIDC verify), new task
-view + `annotations/urls.py`, `bible/services/google_tts/`
+`annotations/services/tasks.py` (enqueue + OIDC verify),
+`annotations/views_tasks.py` (worker endpoint) +
+`annotations/urls.py`, `bible/services/google_tts/`
 (add `note_voices.py`), `bible_research/settings.py`,
 `requirements.txt`, `terraform/{main,buckets→note_audio,
-note_tasks}.tf`, tests in `annotations/tests.py`.
+note_tasks}.tf`, tests in `annotations/test_note_translations.py`.
 
 Frontend: `types.ts`, `api.tsx`, `NoteCard.tsx` (switcher, badge,
 mini-player), `store.tsx` (preferred note language), tests.

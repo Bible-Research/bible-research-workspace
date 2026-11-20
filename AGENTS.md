@@ -196,7 +196,8 @@ Universal rules — follow exactly:
   Vercel-hosted staging backend, which is serverless
   scale-to-zero; neither is a standing paid resource).
 - **Commits/PRs happen inside each subrepo** on feature
-  branches — the root repo only tracks workspace config/docs.
+  branches — the root repo only tracks workspace config/docs
+  but follows the same feature-branch + worktree + PR flow.
 - `bible_research`'s local `config.yaml` points `default` at
   the production Aiven Postgres via the read-only `ai_agent`
   user — use it for read-only investigation; pytest stays on
@@ -219,9 +220,16 @@ Universal rules — follow exactly:
   Terraform that scales up infra, code that keeps services
   running constantly) — flag those to the user instead of
   merging.
-- **Worktrees are mandatory for all implementation work** —
-  never edit/commit in any repo's main checkout: it may hold
-  the user's uncommitted work or another agent's session. For
+- **Worktrees are mandatory for ALL work, in EVERY repo** —
+  "work" means any change: code, docs, AGENTS.md edits,
+  OpenSpec proposals/tasks/spec edits, planning artifacts.
+  "Every repo" includes the workspace root repo itself (its
+  main checkout is a repo like any other) — not just
+  `bible_research`/`reactive-bible`. Never edit or commit in
+  any repo's main checkout, and never check out a feature
+  branch there — it stays on its default branch and is left
+  untouched: it may hold the user's uncommitted work or
+  another agent's session. For
   every task: `git -C <repo> fetch origin`, then
   `git -C <repo> worktree add worktrees/<slug>
   -b <type>/<slug> origin/main` and do all work — commits,
@@ -318,7 +326,10 @@ live at the system level — never run `openspec init` inside
   `~/.config/devin/AGENTS.md`).
 - `openspec/specs/` holds capability specs (current behavior as
   source of truth): `provider-routing`, `error-contract`,
-  `auth` — grow as real changes touch new areas.
+  `auth`, `book-canon`, `note-translations`, `bible-search`,
+  `bible-selector`, `bible-structure`, `getting-started`,
+  `localized-book-display`, `translation-selector`,
+  `ui-localization` — grows as real changes touch new areas.
 - `openspec/config.yaml` carries project context; change
   `tasks.md` items MUST be prefixed `backend:` /
   `frontend:` / `both:` to name the target repo.
@@ -331,12 +342,13 @@ live at the system level — never run `openspec init` inside
   originals).
 - `openspec/changes/archive/` is committed to root `.git`
   like all other planning history.
-- `openspec/changes/` has never held a proposal — two
-  post-adoption features were planned via `docs/plans/`
-  before the convention landed. No retroactive migration;
-  `changes/archive/` only gains entries for work proposed
-  through `openspec changes`. The `docs/plans/` freeze is
-  now total (rule 11).
+- `openspec/changes/` holds live (unarchived) proposals —
+  they are committed to root `.git` like all other planning
+  history. Two pre-adoption features were planned via
+  `docs/plans/` before the convention landed. No retroactive
+  migration; `changes/archive/` only gains entries for work
+  proposed through `openspec changes`. The `docs/plans/`
+  freeze is now total (rule 11).
 - **When to use it**: features, breaking changes, contract
   changes, anything a reviewer would ask "why?" about.
   **Skip the ceremony** for bug fixes restoring spec'd

@@ -1,8 +1,10 @@
 # Note Translations + Note TTS — Investigation & Plan
 
-**Status:** implemented — shipped (bible_research#151, worker
-fix #155, backfill #157, frontend #331; OpenSpec change archived
-as `openspec/changes/archive/2026-11-19-add-note-translations/`).
+**Status:** partial — note translations shipped
+(bible_research#151, worker fix #155, backfill #157, frontend
+#331; OpenSpec change archived as
+`openspec/changes/archive/2026-11-19-add-note-translations/`);
+note TTS is still open as `openspec/changes/add-note-tts/`.
 
 Date: 2026-10-09. Investigates how to auto-translate notes into
 multiple languages and generate per-language audio via Cloud TTS.
@@ -140,8 +142,8 @@ class NoteTranslation(models.Model):
     audio_gcs_uri = CharField(max_length=1024, blank=True)
     audio_duration_seconds = FloatField(null=True)
     source_hash = CharField(max_length=64)       # sha256(note_text)
-    engine = CharField(max_length=32, blank=True) # provenance
-    error = CharField(max_length=255, blank=True)
+    engine = CharField(max_length=40, blank=True) # provenance
+    error = CharField(max_length=100, blank=True)
     author_verified = BooleanField(default=False)
     verified_at = DateTimeField(null=True, blank=True)
     created_at / updated_at
@@ -157,8 +159,10 @@ Rationale:
   "which language is the original" answer — no extra field
   needed beyond it.
 - `status='source'` row = the detected source language; `text`
-  holds the original doc — every language a reader can pick has a
-  uniform row, no special-casing in the serializer.
+  stays EMPTY — the original is served from `Note.note_text`
+  (as built: the row is a language slot and metadata anchor,
+  not a second copy of the doc). Every language a reader can
+  pick has a uniform row, no special-casing in the serializer.
 - `source_hash` makes the Cloud Task idempotent: if the task
   arrives after a newer edit, hashes differ → task no-ops.
 - `audio_*` on the translation row keeps text and audio lifecycles
@@ -195,7 +199,7 @@ call `translation_tasks.enqueue(note.id, source_hash)`:
    Local dev (`not IS_GCP_ENVIRONMENT`): run the worker function
    inline instead — zero-infra fallback.
 
-Worker endpoint (`annotations/views.py` or new `tasks.py`,
+Worker endpoint (`annotations/views_tasks.py` as built,
 `AllowAny` + OIDC verification — verify
 `Authorization: Bearer <oidc>` via
 `google.oauth2.id_token.verify_oauth2_token` and check
@@ -276,6 +280,7 @@ a 30-day bucket lifecycle rule is the safety net.
 
 ```json
 "source_language": "lv",
+"served_language": "lv",
 "translations": [
   {"language": "lv", "status": "source", "has_audio": false,
    "verified": false, "engine": null},
@@ -314,7 +319,8 @@ translation meta. A matching `DELETE` on the same URL revokes
 verification (`author_verified=False`, `verified_at=NULL`) for
 the "I approved this by mistake" case. 404 when the note or the
 `<lang>` row doesn't exist; 409 `translation_not_ready` if the
-row is still `pending`/`failed` — there is nothing to verify yet.
+row is `pending`/`failed`/`source` — a `source` row is the
+author's own text, there is nothing to verify.
 Never verify via PATCH on the note itself: verification is a
 per-language action on a child row, not a note update (and a
 note PATCH would wrongly reset `source_hash` flows).
@@ -501,11 +507,12 @@ source_language, author_verified), `annotations/serializers.py`
 new `annotations/services/translation_service.py`,
 `annotations/services/note_tts.py`,
 `annotations/services/tiptap_text.py`,
-`annotations/services/tasks.py` (enqueue + OIDC verify), new task
-view + `annotations/urls.py`, `bible/services/google_tts/`
+`annotations/services/tasks.py` (enqueue + OIDC verify),
+`annotations/views_tasks.py` (worker endpoint) +
+`annotations/urls.py`, `bible/services/google_tts/`
 (add `note_voices.py`), `bible_research/settings.py`,
 `requirements.txt`, `terraform/{main,buckets→note_audio,
-note_tasks}.tf`, tests in `annotations/tests.py`.
+note_tasks}.tf`, tests in `annotations/test_note_translations.py`.
 
 Frontend: `types.ts`, `api.tsx`, `NoteCard.tsx` (switcher, badge,
 mini-player), `store.tsx` (preferred note language), tests.

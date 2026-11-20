@@ -113,6 +113,24 @@ reporting.
 - **THEN** the response includes the `meta` block and the
   frontend reports the FUMS fields for that display
 
+### Requirement: Unconfigured API.Bible credential degrades
+
+When `API_BIBLE_KEY` is unset or empty, the translations
+listing SHALL omit API.Bible entries (a provider that can
+only 502 must not be advertised) and the response SHALL be
+marked `degraded` so it is never cached. Provider requests
+for API.Bible filesets SHALL raise `ProviderConfigError`,
+which maps to a 502 `provider_error` body and an error-level
+`internal_error` Sentry capture — a missing key is our
+deployment bug, not an upstream outage.
+
+#### Scenario: Empty key hides NIV without caching
+
+- **WHEN** `API_BIBLE_KEY` is empty and a client requests the
+  translations listing
+- **THEN** no API.Bible entry appears, `degraded` is true,
+  and the response carries `no-store`
+
 ### Requirement: Audio fileset id convention
 
 Fileset ids ending in `DA` SHALL denote audio filesets. Known

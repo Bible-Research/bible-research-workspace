@@ -75,6 +75,12 @@ processed ledger (step 7); `reportCategory` only steers how a
 report is handled (step 2). Anonymous submissions may also
 carry a reply `email` on the feedback entry.
 
+Each report also creates a per-report "User Feedback: <title>"
+issue alongside the catch-all `user report` event — find them
+via `query=` (empty) + a title filter; `reportType:user-report`
+only matches the catch-all. Once a report is handled, resolve
+its per-report issue; the catch-all stays unresolved (step 7).
+
 ## 2. Pick and analyze one item
 
 - Default: ONE item per run — the highest-count/recent bug

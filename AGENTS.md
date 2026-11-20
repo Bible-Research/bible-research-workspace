@@ -87,7 +87,12 @@ fileset model, auth quirks, caching, error contracts).
   target `staging` and squash-merge on green; promotion to
   `main` happens per feature branch via separate PRs —
   never a `staging`→`main` merge — then `staging` is
-  reset to `main`. The repo's `Promote to main`
+  reset to `main`. Ad-hoc "deploy to production" asks
+  solo-promote the one branch instead (staging merge,
+  then a `main` PR from the same head — valid only
+  while the head never absorbed an `origin/staging`
+  merge; see `reactive-bible/AGENTS.md` "Merge straight
+  to main"). The repo's `Promote to main`
   `workflow_dispatch` action automates the whole
   promotion + reset (including conflict resolution from
   staging's own integration state) — run it from the

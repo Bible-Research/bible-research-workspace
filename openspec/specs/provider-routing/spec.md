@@ -115,21 +115,35 @@ reporting.
 
 ### Requirement: Unconfigured API.Bible credential degrades
 
-When `API_BIBLE_KEY` is unset or empty, the translations
-listing SHALL omit API.Bible entries (a provider that can
-only 502 must not be advertised) and the response SHALL be
-marked `degraded` so it is never cached. Provider requests
-for API.Bible filesets SHALL raise `ProviderConfigError`,
-which maps to a 502 `provider_error` body and an error-level
-`internal_error` Sentry capture — a missing key is our
-deployment bug, not an upstream outage.
+When `API_BIBLE_KEY` is unset, empty, or whitespace-only, the
+translations listing SHALL omit API.Bible entries (a provider
+that can only 502 must not be advertised) and the response
+SHALL be marked `degraded` so it is never cached.
 
 #### Scenario: Empty key hides NIV without caching
 
-- **WHEN** `API_BIBLE_KEY` is empty and a client requests the
-  translations listing
+- **WHEN** `API_BIBLE_KEY` is empty or whitespace-only and a
+  client requests the translations listing
 - **THEN** no API.Bible entry appears, `degraded` is true,
   and the response carries `no-store`
+
+### Requirement: Unconfigured provider credential reports as internal
+
+Provider requests reaching a client whose credential is
+missing SHALL raise `ProviderConfigError` at client
+construction — a 502 `provider_error` body plus error-level
+`internal_error` Sentry capture (a missing key is our
+deployment bug, not an upstream outage). Registry-only paths
+degrade without the client; `ESV_KEY`/`DBT_KEY` raise the
+same error.
+
+#### Scenario: Empty key yields coded 502 on content requests
+
+- **WHEN** `API_BIBLE_KEY` is unset and a request asks for an
+  API.Bible chapter, audio, timestamps, or copyright
+- **THEN** client construction raises `ProviderConfigError`
+  and the API responds 502 with `error_code` of
+  `provider_error`
 
 ### Requirement: Audio fileset id convention
 

@@ -140,7 +140,7 @@ same error.
 #### Scenario: Empty key yields coded 502 on content requests
 
 - **WHEN** `API_BIBLE_KEY` is unset and a request asks for an
-  API.Bible chapter, audio, timestamps, or copyright
+  API.Bible chapter, audio, timestamps, copyright, or search
 - **THEN** client construction raises `ProviderConfigError`
   and the API responds 502 with `error_code` of
   `provider_error`

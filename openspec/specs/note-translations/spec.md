@@ -1,6 +1,24 @@
 # note-translations Specification
 
 ## Purpose
+
+> **Status: GENERATION DISABLED (2026-11-23).** The machine-
+> translation *pipeline* is turned off: `NOTE_TARGET_LANGUAGES`
+> is forced empty server-side, so no new `pending`/`ready`/
+> `failed` rows are produced and `source_language` detection no
+> longer runs; `retranslate` no-ops; and Terraform removes the
+> Cloud Tasks queue, the invoker SA, the associated Cloud
+> Tasks / Cloud Translation IAM grants, and the monthly audit
+> scheduler. Requirements about *producing* translations
+> (detection, pending rows, async runs, retries, the coverage
+> audit) and the now-dead `pending`/`failed` state affordances
+> in the reader UX are suspended, not deleted — the code paths
+> remain for re-enablement. The *serving* contract is still
+> live: existing `ready`/`source` rows keep being served
+> through `?lang=`, `translations` metadata, and the verify
+> endpoint, and the reader-facing language-switching UX still
+> applies to notes that carry them.
+
 Defines machine translation of user notes: per-note source
 language detection, translated copies with status and
 verification metadata, the `?lang=` serving contract on note

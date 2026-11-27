@@ -69,12 +69,17 @@ Each event carries a `userReport` context: `note` (the
 description), `reportedBy`, `category`, `bookId`, `chapter`,
 `textFilesetId`, `audioFilesetId`, plus a `reportCategory` tag
 (`bug` | `feature` | `general`) on both the event and its
-feedback entry. Only `reportCategory:bug` events — plus legacy
-reports with no category tag — belong in this bug-fix queue;
-`feature` and `general` messages are reviewed via the
-user-feedback stream, never auto-fixed. Anonymous submissions
-may also carry a reply `email` on the feedback entry. Filter
-out event ids already in the processed ledger (step 7).
+feedback entry. EVERY category is worked — the queue is all
+`reportType:user-report` events minus event ids already in the
+processed ledger (step 7); `reportCategory` only steers how a
+report is handled (step 2). Anonymous submissions may also
+carry a reply `email` on the feedback entry.
+
+Each report also creates a per-report "User Feedback: <title>"
+issue alongside the catch-all `user report` event — find them
+via `query=` (empty) + a title filter; `reportType:user-report`
+only matches the catch-all. Once a report is handled, resolve
+its per-report issue; the catch-all stays unresolved (step 7).
 
 ## 2. Pick and analyze one item
 
@@ -85,13 +90,26 @@ out event ids already in the processed ledger (step 7).
   `GET $BASE/issues/<id>/events/latest/` — exception type,
   sourcemapped stack frames (file/line/function), `context` /
   `errorKind` tags, release sha, breadcrumbs.
-- User report: read the `userReport` context and try to
-  reproduce — navigate to that passage/fileset, re-issue the
-  same API calls (read-only against prod is fine), run the
-  flow. Reproduced → proceed as a bug. Can't reproduce → write
-  `{event_id: {verdict: "cannot-reproduce", date}}` to the
-  ledger, report back to the user, and move on — NEVER a
-  speculative fix.
+- User report: read the `userReport` context, then branch on
+  `reportCategory` (a missing tag means a legacy report —
+  treat it as `bug`):
+  - `bug`: try to reproduce — navigate to that
+    passage/fileset, re-issue the same API calls (read-only
+    against prod is fine), run the flow. Reproduced →
+    proceed as a bug. Can't reproduce → write
+    `{event_id: {verdict: "cannot-reproduce", date}}` to
+    the ledger, report back to the user, and move on —
+    NEVER a speculative fix.
+  - `feature`: implement it like any feature request —
+    same worktree/branch/PR flow. If it is unreasonably
+    large or out of scope, use judgment: log
+    `{verdict: "declined", reason, date}` in the ledger
+    and report the reasoning back instead.
+  - `general`: triage — investigate what the user is
+    asking and answer it. If it reveals a bug or a small
+    improvement, fix it via the normal flow; otherwise
+    log `{verdict: "answered", note, date}` in the
+    ledger and report the answer back.
 
 ## 3. Decide which repo the fix belongs in
 
@@ -167,8 +185,9 @@ user-report event_id to `{verdict, pr_url, date}` — Sentry
 feedback has no per-report status field, and the catch-all
 `user report` issue must stay unresolved by design (it's a
 stream, not a bug). Create the file if absent; add an entry
-after every handled report (fixed → `pr_url`; unreproducible →
-`cannot-reproduce` + note).
+after every handled report. Verdicts: `fixed` /
+`implemented` (feature shipped → `pr_url`), `cannot-reproduce`
++ note, `declined` + reason, `answered` + note.
 
 ## Guardrails
 
@@ -178,4 +197,4 @@ after every handled report (fixed → `pr_url`; unreproducible →
   the user pick before fixing.
 - Report at the end: issue/report handled, PR URL, Sentry
   resolution status, and any reports logged as
-  cannot-reproduce.
+  cannot-reproduce / declined / answered.

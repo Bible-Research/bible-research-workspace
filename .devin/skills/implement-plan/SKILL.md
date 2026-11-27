@@ -127,12 +127,14 @@ If any reviewer reported blocker/should-fix findings:
   stop and ask the user rather than improvising.
 
 Once a PR's review round is clean AND its checks are green,
-merge it first if it targets `staging` (autonomous —
+merge it first if it targets `staging` or is in
+`bible-research-workspace` (autonomous —
 `gh pr merge <N> --squash`), then remove every worktree
 created for it immediately — `git -C
 <repo> worktree remove --force worktrees/<slug>` (and any
 `worktrees/fix-<slug>`) + `git -C <repo> branch -D
-feat/<slug>` per AGENTS.md; don't wait for a `main` merge.
+feat/<slug>` per AGENTS.md; don't wait for a follow-up
+`main` merge.
 
 ## Final report
 

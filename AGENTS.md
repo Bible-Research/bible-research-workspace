@@ -215,17 +215,18 @@ Universal rules — follow exactly:
   asked to log in and run tests (UI or API). `Tester5` and
   `Daniels` also exist on `stagingdb` with their prod data.
 - **Merging PRs**: merges into `reactive-bible`'s `staging`
-  branch are autonomous — merge once checks are green and
-  the reviewer loop is clean; don't wait for a user
-  instruction (see "Frontend staging" under Deployments).
-  Merges into `main` — any repo — still happen on user
-  request: `gh pr merge <N> --squash --admin` is allowed
-  even when a required review is unmet — don't block on
-  branch-protection review requirements. Hold back only if
-  the merge could introduce significant ongoing costs (e.g.
-  Terraform that scales up infra, code that keeps services
-  running constantly) — flag those to the user instead of
-  merging.
+  branch and into `bible-research-workspace`'s `main` are
+  autonomous — merge once checks are green and the reviewer
+  loop is clean; don't wait for a user instruction (see
+  "Frontend staging" under Deployments). Merges into `main`
+  in the app repos (`bible_research`, `reactive-bible`)
+  still happen on user request: `gh pr merge <N> --squash
+  --admin` is allowed even when a required review is unmet —
+  don't block on branch-protection review requirements.
+  Hold back only if the merge could introduce significant
+  ongoing costs (e.g. Terraform that scales up infra, code
+  that keeps services running constantly) — flag those to
+  the user instead of merging.
 - **Worktrees are mandatory for ALL work, in EVERY repo** —
   "work" means any change: code, docs, AGENTS.md edits,
   OpenSpec proposals/tasks/spec edits, planning artifacts.
@@ -252,8 +253,8 @@ Universal rules — follow exactly:
   everything useful it reports, push, and repeat with a new
   reviewer until a round finds nothing meaningful. Once the
   loop is clean and the PR's checks are green, merge it if
-  it targets `staging` (`gh pr merge <N> --squash` —
-  autonomous), then clean up
+  it targets `staging` or lives in `bible-research-workspace`
+  (`gh pr merge <N> --squash` — autonomous), then clean up
   IMMEDIATELY — don't wait for a `main` merge (the PR
   lives on the remote branch; removing the local
   worktree/branch does not touch it, and the remote branch

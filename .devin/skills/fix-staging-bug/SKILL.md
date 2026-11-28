@@ -101,17 +101,31 @@ stale SHA.
 
 GitHub auto-deletes the head branch on merge; re-push the
 exact merged head first (pushing the SHA, not a branch —
-a deleted ref makes a plain `git push` a silent no-op):
+a deleted ref makes a plain `git push` a silent no-op).
+Re-capture the SHA — don't rely on `$HEAD` surviving from
+the merge step in a different shell — and `git fetch origin`
+first so the object exists locally:
 
+    HEAD=$(gh pr view <N> --json headRefOid --jq .headRefOid)
+    git fetch origin "$HEAD"
     git push origin "$HEAD":refs/heads/<branch>
 
-Then `gh pr create --base main --head <branch>` reusing the
-staging PR's title and body verbatim (keep `Closes #<N>`
-links) and append the marker line:
+Verify the promo carries the feature alone — `git diff
+origin/main...$HEAD` should show only this change (if the
+branch absorbed an `origin/staging` merge, see Caveats).
+
+Then write the staging PR's body to a temp file
+(`gh pr view <N> --json body --jq .body > /tmp/body.md`),
+append `---` and the marker line, and
+`gh pr create --base main --head <branch> --title <same> \
+--body-file /tmp/body.md` — reusing title/body verbatim
+(keep `Closes #<N>` links). Marker line, verbatim:
 
     _Promoted from `staging` (PR #<N>)_
 
-Leave the main PR OPEN — the user merges it.
+Leave the main PR OPEN — the user merges it. Do NOT reset
+`staging` to `main` afterwards — that only happens after a
+full promotion train; the queue must keep soaking.
 
 Caveats:
 
